@@ -60,7 +60,6 @@
 `define WB_PC     2'd3
 
 /* 以下命令コード */
-`define NOP    32'b000000000000xxxxx000xxxxx0010011
 // ロード・ストア
 `define LW     32'bxxxxxxxxxxxxxxxxx010xxxxx0000011
 `define SW     32'bxxxxxxxxxxxxxxxxx010xxxxx0100011

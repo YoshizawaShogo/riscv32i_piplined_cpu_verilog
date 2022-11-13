@@ -29,7 +29,6 @@ assign imm = (opcode == `IMM_LUI || opcode == `IMM_AUIPC) ? {inst[31:12], 12'd0}
 function [13:0] parse_fn_rs1_rs2_memwen_rfwen_wbsel;
     input [31:0] inst;
     casex (inst)
-    `NOP   : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_X,    `RS1_X,   `RS2_X,   `MEN_X, `REN_X, `WB_X  };
     `LW    : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_RS1, `RS2_IMI, `MEN_X, `REN_S, `WB_MEM};
     `SW    : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_RS1, `RS2_IMS, `MEN_S, `REN_X, `WB_X  };
     `ADD   : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_RS1, `RS2_RS2, `MEN_X, `REN_S, `WB_ALU};
