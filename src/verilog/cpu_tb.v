@@ -16,6 +16,7 @@ module cpu_tb;
         //$display("alu_out = %d, memout= %d, addr = %d, en = %d,%d. data=%d, rs2_data = %d, hazard = %D", cpu.alu_out, cpu.data_mem.read_data, cpu.data_mem.addr, cpu.mem_wen, cpu.data_mem.write_en, cpu.data_mem.write_data, cpu.rs2_data, cpu.have_data_hazard);
         $display("pc = %d, %d, alu_out = %d, branch_flag = %d, jump = %d, %d", 
                  cpu.pc, cpu.mem_wb_pc, cpu.mem_wb_alu_out, cpu.have_branch_stall, cpu.jump_flag, cpu.next_pc);
+        // $display("%d, %d ", cpu.jump_controller.br, cpu.jump_controller.rs2_data);
     end
 
     initial begin

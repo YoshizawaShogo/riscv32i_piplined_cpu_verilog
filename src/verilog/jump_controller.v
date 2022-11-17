@@ -1,7 +1,7 @@
 `include "define.vh"
 
 module JUMP_CONTROLLER (
-    input wire [4:0] fn,
+    input wire [2:0] br,
     input wire [31:0] rs1_data,
     input wire [31:0] rs2_data,
     input wire [31:0] imm,
@@ -32,13 +32,13 @@ module JUMP_CONTROLLER (
     assign jalr_target = (rs1_data + rs2_data) & ~32'b1;
 
     // output
-    assign jump_flag = (fn == `BR_BEQ) ? active_beq :
-                       (fn == `BR_BNE) ? active_bne :
-                       (fn == `BR_BLT) ? active_blt :
-                       (fn == `BR_BGE) ? active_bge :
-                       (fn == `BR_BLTU) ? active_bltu :
-                       (fn == `BR_BGEU) ? active_bgeu :
-                       (fn == `ALU_JALR) ? 1'b1 : 1'b0;
-    assign next_pc = (fn == `ALU_JALR) ? jalr_target : pc + imm;
+    assign jump_flag = (br == `BR_BEQ) ? active_beq :
+                       (br == `BR_BNE) ? active_bne :
+                       (br == `BR_BLT) ? active_blt :
+                       (br == `BR_BGE) ? active_bge :
+                       (br == `BR_BLTU) ? active_bltu :
+                       (br == `BR_BGEU) ? active_bgeu :
+                       (br == `BR_JAL) ? 1'b1 : 1'b0;
+    assign next_pc = (br == `BR_JAL) ? jalr_target : pc + imm;
 
 endmodule

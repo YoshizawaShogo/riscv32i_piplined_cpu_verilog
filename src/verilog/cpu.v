@@ -11,6 +11,7 @@ wire [31:0] pc;
 
 wire [1:0] rs1;
 wire [1:0] rs2;
+wire [2:0] br;
 wire [31:0] imm;
 wire [4:0] rs1_addr, rs2_addr, rd_addr;
 wire [4:0] fn;
@@ -39,6 +40,7 @@ reg id_ex_mem_wen;
 reg [1:0] id_ex_wb_sel;
 reg id_ex_rf_wen;
 reg [4:0] id_ex_rd_addr;
+reg [2:0] id_ex_br;
 
 // EX
 reg [31:0] ex_mem_pc;
@@ -77,6 +79,7 @@ always @(posedge clk) begin
         id_ex_rs2 <= rs2;
         id_ex_rs2_data <= rs2_data;
         id_ex_rd_addr <= rd_addr;
+        id_ex_br <= br;
     if (!(have_data_hazard || have_branch_stall)) begin
         id_ex_fn <= fn;
         id_ex_imm <= imm;
@@ -140,7 +143,7 @@ assign have_branch_stall = (id_ex_fn == `BR_BEQ) ||
                            (id_ex_fn == `BR_BGE) || 
                            (id_ex_fn == `BR_BLTU) ||
                            (id_ex_fn == `BR_BGEU) || 
-                           (id_ex_fn == `ALU_JALR) ? 1'b1 : 1'b0;
+                           (id_ex_fn == `BR_JAL) ? 1'b1 : 1'b0;
 
 PC pc_mod (
     .clk(clk), // input
@@ -162,7 +165,8 @@ DECODER decoder (
     .rf_wen(rf_wen), // output
     .wb_sel(wb_sel), // output
     .rs1(rs1), // output 
-    .rs2(rs2) // output
+    .rs2(rs2), // output
+    .br(br)
 );
 
 REG_FILE reg_file (
@@ -178,7 +182,7 @@ REG_FILE reg_file (
 );
 
 JUMP_CONTROLLER jump_controller (
-    .fn(id_ex_fn), // input
+    .br(id_ex_br), // input
     .rs1_data(id_ex_rs1_data), // input
     .rs2_data(id_ex_rs2_data), // input
     .imm(id_ex_imm), // input

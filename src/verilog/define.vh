@@ -11,25 +11,28 @@
 `define IMM_OPIMI   7'b0010011 //OPERATION IMIDIATE
 `define IMM_OPRS2   7'b0110011 //OPERATION RS2
 
-// fn
-`define ALU_X    5'd0
-`define ALU_ADD  5'd1
-`define ALU_SUB  5'd2
-`define ALU_AND  5'd3
-`define ALU_OR   5'd4
-`define ALU_XOR  5'd5
-`define ALU_SLL  5'd6
-`define ALU_SRL  5'd7
-`define ALU_SRA  5'd8
-`define ALU_SLT  5'd9
-`define ALU_SLTU 5'd10
-`define BR_BEQ   5'd11
-`define BR_BNE   5'd12
-`define BR_BLT   5'd13
-`define BR_BGE   5'd14
-`define BR_BLTU  5'd15
-`define BR_BGEU  5'd16
-`define ALU_JALR 5'd17
+// alu fn
+`define ALU_X    4'd0
+`define ALU_ADD  4'd1
+`define ALU_SUB  4'd2
+`define ALU_AND  4'd3
+`define ALU_OR   4'd4
+`define ALU_XOR  4'd5
+`define ALU_SLL  4'd6
+`define ALU_SRL  4'd7
+`define ALU_SRA  4'd8
+`define ALU_SLT  4'd9
+`define ALU_SLTU 4'd10
+
+// branch fn
+`define BR_X     3'd0
+`define BR_BEQ   3'd1
+`define BR_BNE   3'd2
+`define BR_BLT   3'd3
+`define BR_BGE   3'd4
+`define BR_BLTU  3'd5
+`define BR_BGEU  3'd6
+`define BR_JAL   3'd7
 
 // rs1
 `define RS1_X    2'd0
