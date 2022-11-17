@@ -10,7 +10,7 @@ wire [31:0] rs1_data, rs2_data;
 wire [31:0] pc;
 
 wire [1:0] rs1;
-wire [2:0] rs2;
+wire [1:0] rs2;
 wire [31:0] imm;
 wire [4:0] rs1_addr, rs2_addr, rd_addr;
 wire [4:0] fn;
@@ -32,7 +32,7 @@ reg [31:0] id_ex_pc;
 reg [4:0] id_ex_fn;
 reg [1:0] id_ex_rs1;
 reg [31:0] id_ex_rs1_data;
-reg [2:0] id_ex_rs2;
+reg [1:0] id_ex_rs2;
 reg [31:0] id_ex_rs2_data;
 reg [31:0] id_ex_imm;
 reg id_ex_mem_wen;
@@ -118,10 +118,7 @@ assign alu_src1 = (id_ex_rs1 == `RS1_X)   ? 32'b0          :
 wire [31:0] alu_src2;
 assign alu_src2 = (id_ex_rs2 == `RS2_X)   ? 32'b0          :
                   (id_ex_rs2 == `RS2_RS2) ? id_ex_rs2_data :
-                  (id_ex_rs2 == `RS2_IMI) ||
-                  (id_ex_rs2 == `RS2_IMS) ||
-                  (id_ex_rs2 == `RS2_IMJ) ||
-                  (id_ex_rs2 == `RS2_IMU) ? id_ex_imm       : 32'bx;
+                  (id_ex_rs2 == `RS2_IMI) ? id_ex_imm       : 32'bx;
                
 wire [31:0] mem_write_value;
 assign mem_write_value = (ex_mem_mem_wen) ? ex_mem_rs2_data : ex_mem_rs2_data;

@@ -8,7 +8,7 @@ module DECODER (
     output wire mem_wen, rf_wen,
     output wire [1:0] wb_sel,
     output wire [1:0] rs1,
-    output wire [2:0] rs2
+    output wire [1:0] rs2
 );
 
 // 内部信号
@@ -26,11 +26,11 @@ assign imm = (opcode == `IMM_LUI || opcode == `IMM_AUIPC) ? {inst[31:12], 12'd0}
              (opcode == `IMM_BRANCH) ? {{18{inst[31]}},inst[31],inst[7],inst[30:25],inst[11:8],1'd0} : //B-format
              (opcode == `IMM_STORE) ? {{20{inst[31]}},inst[31],inst[30:25],inst[11:8],inst[7]} : 32'd0;// ? S-format : R-format(即値なし)
 
-function [13:0] parse_fn_rs1_rs2_memwen_rfwen_wbsel;
+function [12:0] parse_fn_rs1_rs2_memwen_rfwen_wbsel;
     input [31:0] inst;
     casex (inst)
     `LW    : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_RS1, `RS2_IMI, `MEN_X, `REN_S, `WB_MEM};
-    `SW    : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_RS1, `RS2_IMS, `MEN_S, `REN_X, `WB_X  };
+    `SW    : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_RS1, `RS2_IMI, `MEN_S, `REN_X, `WB_X  };
     `ADD   : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_RS1, `RS2_RS2, `MEN_X, `REN_S, `WB_ALU};
     `ADDI  : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_RS1, `RS2_IMI, `MEN_X, `REN_S, `WB_ALU};
     `SUB   : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_SUB,  `RS1_RS1, `RS2_RS2, `MEN_X, `REN_S, `WB_ALU};
@@ -56,10 +56,10 @@ function [13:0] parse_fn_rs1_rs2_memwen_rfwen_wbsel;
     `BGE   : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`BR_BGE,   `RS1_RS1, `RS2_RS2, `MEN_X, `REN_X, `WB_X  };
     `BLTU  : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`BR_BLTU,  `RS1_RS1, `RS2_RS2, `MEN_X, `REN_X, `WB_X  };
     `BGEU  : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`BR_BGEU,  `RS1_RS1, `RS2_RS2, `MEN_X, `REN_X, `WB_X  };
-    `JAL   : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_PC,  `RS2_IMJ, `MEN_X, `REN_S, `WB_PC };
+    `JAL   : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_PC,  `RS2_IMI, `MEN_X, `REN_S, `WB_PC };
     `JALR  : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_JALR, `RS1_RS1, `RS2_IMI, `MEN_X, `REN_S, `WB_PC };
-    `LUI   : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_X,   `RS2_IMU, `MEN_X, `REN_S, `WB_ALU};
-    `AUIPC : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_PC,  `RS2_IMU, `MEN_X, `REN_S, `WB_ALU};
+    `LUI   : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_X,   `RS2_IMI, `MEN_X, `REN_S, `WB_ALU};
+    `AUIPC : parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_ADD,  `RS1_PC,  `RS2_IMI, `MEN_X, `REN_S, `WB_ALU};
     default: parse_fn_rs1_rs2_memwen_rfwen_wbsel = {`ALU_X,    `RS1_X,   `RS2_X,   `MEN_X, `REN_X, `WB_X  }; 
     endcase
 endfunction
