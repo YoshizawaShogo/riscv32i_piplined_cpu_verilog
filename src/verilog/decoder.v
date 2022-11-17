@@ -4,7 +4,7 @@ module DECODER (
     input wire [31:0] inst,
     output wire [31:0] imm,
     output wire [4:0] rs1_addr, rs2_addr, rd_addr,
-    output wire [4:0] fn,
+    output wire [4:0] alu_fn,
     output wire mem_wen, rf_wen,
     output wire [1:0] wb_sel,
     output wire [1:0] rs1,
@@ -58,12 +58,12 @@ function [15:0] parse;
     `BLTU  : parse = {`ALU_ADD,  `RS1_PC,  `RS2_IMI, `MEN_X, `REN_X, `WB_X  , `BR_BLTU };
     `BGEU  : parse = {`ALU_ADD,  `RS1_PC,  `RS2_IMI, `MEN_X, `REN_X, `WB_X  , `BR_BGEU };
     `JAL   : parse = {`ALU_ADD,  `RS1_PC,  `RS2_IMI, `MEN_X, `REN_S, `WB_PC , `BR_JAL  };
-    `JALR  : parse = {`ALU_ADD,  `RS1_RS1, `RS2_IMI, `MEN_X, `REN_S, `WB_PC , `BR_JAL };
+    `JALR  : parse = {`ALU_JALR, `RS1_RS1, `RS2_IMI, `MEN_X, `REN_S, `WB_PC , `BR_JAL  };
     `LUI   : parse = {`ALU_ADD,  `RS1_X,   `RS2_IMI, `MEN_X, `REN_S, `WB_ALU, `BR_X    };
     `AUIPC : parse = {`ALU_ADD,  `RS1_PC,  `RS2_IMI, `MEN_X, `REN_S, `WB_ALU, `BR_X    };
     default: parse = {`ALU_X,    `RS1_X,   `RS2_X,   `MEN_X, `REN_X, `WB_X  , `BR_X    }; 
     endcase
 endfunction
 
-assign {fn, rs1, rs2, mem_wen, rf_wen, wb_sel, br} = parse(inst);
+assign {alu_fn, rs1, rs2, mem_wen, rf_wen, wb_sel, br} = parse(inst);
 endmodule

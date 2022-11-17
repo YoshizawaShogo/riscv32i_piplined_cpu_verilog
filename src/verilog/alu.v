@@ -41,6 +41,9 @@ module ALU (
     wire [31:0] sltu_out;
     assign sltu_out = (src1 < src2) ? 32'b1 : 32'b0;
 
+    wire [31:0] jalr_out;
+    assign jalr_out = (src1 + src2) & ~32'b1;
+
     assign out = (fn == `ALU_X) ? 32'bx :
                  (fn == `ALU_ADD) ? add_out :
                  (fn == `ALU_SUB) ? sub_out :
@@ -52,6 +55,7 @@ module ALU (
                  (fn == `ALU_SRA) ? sra_out :
                  (fn == `ALU_SLT) ? slt_out :
                  (fn == `ALU_SLTU) ? sltu_out :
+                 (fn == `ALU_JALR) ? jalr_out :
                  32'bx;
 
 endmodule

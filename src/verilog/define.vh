@@ -23,6 +23,7 @@
 `define ALU_SRA  4'd8
 `define ALU_SLT  4'd9
 `define ALU_SLTU 4'd10
+`define ALU_JALR 4'd11
 
 // branch fn
 `define BR_X     3'd0

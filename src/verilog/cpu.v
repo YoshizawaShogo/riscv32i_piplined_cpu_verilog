@@ -14,7 +14,7 @@ wire [1:0] rs2;
 wire [2:0] br;
 wire [31:0] imm;
 wire [4:0] rs1_addr, rs2_addr, rd_addr;
-wire [4:0] fn;
+wire [4:0] alu_fn;
 wire mem_wen, rf_wen;
 wire [1:0] wb_sel;
 
@@ -22,7 +22,6 @@ wire [31:0] inst;
 wire [31:0] mem_out;
 
 wire jump_flag;
-wire [31:0] next_pc;
 
 // IF
 reg [31:0] if_id_pc;
@@ -30,7 +29,7 @@ reg [31:0] if_id_inst;
 
 // ID
 reg [31:0] id_ex_pc;
-reg [4:0] id_ex_fn;
+reg [4:0] id_ex_alu_fn;
 reg [1:0] id_ex_rs1;
 reg [31:0] id_ex_rs1_data;
 reg [1:0] id_ex_rs2;
@@ -81,14 +80,14 @@ always @(posedge clk) begin
         id_ex_rd_addr <= rd_addr;
         id_ex_br <= br;
     if (!(have_data_hazard || have_branch_stall)) begin
-        id_ex_fn <= fn;
+        id_ex_alu_fn <= alu_fn;
         id_ex_imm <= imm;
         id_ex_mem_wen <= mem_wen;
         id_ex_wb_sel <= wb_sel;
         id_ex_rf_wen <= rf_wen;
     end
     else begin
-        id_ex_fn <= `ALU_X;
+        id_ex_alu_fn <= `ALU_X;
         id_ex_imm <= 32'b0;
         id_ex_mem_wen <= `MEN_X;
         id_ex_wb_sel <= `WB_X;
@@ -137,20 +136,20 @@ assign have_data_hazard = ((id_ex_rf_wen  && (id_ex_rd_addr == rs1_addr  || id_e
                           ((ex_mem_rf_wen && (ex_mem_rd_addr == rs1_addr || ex_mem_rd_addr == rs2_addr))) ||
                           ((mem_wb_rf_wen && (mem_wb_rd_addr == rs1_addr || mem_wb_rd_addr == rs2_addr)))  ? 1'b1 : 1'b0;
 wire have_branch_stall;
-assign have_branch_stall = (id_ex_fn == `BR_BEQ) || 
-                           (id_ex_fn == `BR_BNE) || 
-                           (id_ex_fn == `BR_BLT) || 
-                           (id_ex_fn == `BR_BGE) || 
-                           (id_ex_fn == `BR_BLTU) ||
-                           (id_ex_fn == `BR_BGEU) || 
-                           (id_ex_fn == `BR_JAL) ? 1'b1 : 1'b0;
+assign have_branch_stall = (id_ex_alu_fn == `BR_BEQ) || 
+                           (id_ex_alu_fn == `BR_BNE) || 
+                           (id_ex_alu_fn == `BR_BLT) || 
+                           (id_ex_alu_fn == `BR_BGE) || 
+                           (id_ex_alu_fn == `BR_BLTU) ||
+                           (id_ex_alu_fn == `BR_BGEU) || 
+                           (id_ex_alu_fn == `BR_JAL) ? 1'b1 : 1'b0;
 
 PC pc_mod (
     .clk(clk), // input
     .reset(reset), // input
     .stall(have_data_hazard || have_branch_stall), // input
     .jump_flag(jump_flag), // input
-    .next_pc(next_pc), // input
+    .jump_target(alu_out), // input
     .pc(pc) // output
 );
 
@@ -160,7 +159,7 @@ DECODER decoder (
     .rs1_addr(rs1_addr), // output
     .rs2_addr(rs2_addr), // output
     .rd_addr(rd_addr), // output
-    .fn(fn), // output
+    .alu_fn(alu_fn), // output
     .mem_wen(mem_wen), // output
     .rf_wen(rf_wen), // output
     .wb_sel(wb_sel), // output
@@ -185,14 +184,11 @@ JUMP_CONTROLLER jump_controller (
     .br(id_ex_br), // input
     .rs1_data(id_ex_rs1_data), // input
     .rs2_data(id_ex_rs2_data), // input
-    .imm(id_ex_imm), // input
-    .pc(id_ex_pc), // input
-    .jump_flag(jump_flag), // output
-    .next_pc(next_pc) // output
+    .jump_flag(jump_flag) // output
 );
 
 ALU alu (
-    .fn(id_ex_fn), // input
+    .fn(id_ex_alu_fn), // input
     .src1(alu_src1), // input
     .src2(alu_src2), // input
     .out(alu_out) // output
