@@ -7,7 +7,7 @@ module JUMP_CONTROLLER (
     input wire [31:0] imm,
     input wire [31:0] pc,
     output wire jump_flag,
-    output wire [31:0] jump_target
+    output wire [31:0] next_pc
 );
     // 条件分岐
     wire active_beq;
@@ -39,6 +39,6 @@ module JUMP_CONTROLLER (
                        (fn == `BR_BLTU) ? active_bltu :
                        (fn == `BR_BGEU) ? active_bgeu :
                        (fn == `ALU_JALR) ? 1'b1 : 1'b0;
-    assign jump_target = (fn == `ALU_JALR) ? jalr_target : pc + imm;
+    assign next_pc = (fn == `ALU_JALR) ? jalr_target : pc + imm;
 
 endmodule

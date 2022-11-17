@@ -21,7 +21,7 @@ wire [31:0] inst;
 wire [31:0] mem_out;
 
 wire jump_flag;
-wire [31:0] jump_target;
+wire [31:0] next_pc;
 
 // IF
 reg [31:0] if_id_pc;
@@ -147,7 +147,7 @@ PC pc_mod (
     .reset(reset), // input
     .stall(have_data_hazard || have_branch_stall), // input
     .jump_flag(jump_flag), // input
-    .jump_target(jump_target), // input
+    .next_pc(next_pc), // input
     .pc(pc) // output
 );
 
@@ -184,7 +184,7 @@ JUMP_CONTROLLER jump_controller (
     .imm(id_ex_imm), // input
     .pc(id_ex_pc), // input
     .jump_flag(jump_flag), // output
-    .jump_target(jump_target) // output
+    .next_pc(next_pc) // output
 );
 
 ALU alu (
