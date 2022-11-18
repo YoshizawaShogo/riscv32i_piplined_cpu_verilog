@@ -3,9 +3,7 @@ int aaabs(int a);
 int main() {
     volatile int a = -7777;
     int b = aaabs(a);
-
-    int c = a + b;
-    return c;
+    return b;
 }
 
 int aaabs(int x) {   
