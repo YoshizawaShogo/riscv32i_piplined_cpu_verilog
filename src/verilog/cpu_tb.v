@@ -13,13 +13,15 @@ module cpu_tb;
     always begin 
         #HALFCYCLE clk = ~clk;
         #HALFCYCLE clk = ~clk;
-        $display("pc = %x, inst = %x, fn = %d, rs1 = %d, rs2 = %d, alu = %d, reg[%d]=%d, jump = %d,%d, rb = %d", cpu.pc, cpu.inst, cpu.alu.fn, cpu.alu_src1, cpu.alu_src2, cpu.alu_out, cpu.reg_file.rs2_addr, cpu.reg_file.rs2_data, cpu.jump_flag, cpu.id_ex_rs2_data, cpu.rf_write_value);
+
+        $display("pc = %x, inst = %x. rf[10] = %d",
+                cpu.pc, cpu.inst, cpu.reg_file.reg_file[10]);
     end
 
     initial begin
         clk = 0;
-        reset = 1; #10 reset = 0;
+        reset = 1; #CYCLE reset = 0;
     end
 
-    initial #(100 * CYCLE) $finish;
+    initial #(5000 * CYCLE) $finish;
 endmodule

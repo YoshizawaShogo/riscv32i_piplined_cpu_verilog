@@ -18,7 +18,7 @@ module REG_FILE (
         if (reset) begin
             reg_file[0] <= 32'b0; //zero ゼロレジスタ
             // reg_file[1] <= 32'b0; //
-            reg_file[2] <= 32'h1000; //sp   スタックポイント
+            reg_file[2] <= 32'h1000; //sp スタックポイント //適当
             // reg_file[3] <= 32'b0; //
             // reg_file[4] <= 32'b0; //
             // reg_file[5] <= 32'b0; //
@@ -49,7 +49,7 @@ module REG_FILE (
             // reg_file[30] <= 32'b0; //
             // reg_file[31] <= 32'b0; //
         end
-        else if (write_en) begin
+        else if (write_en && write_addr != 1'b0) begin
             reg_file[write_addr] <= write_value;
         end
     end

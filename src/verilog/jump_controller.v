@@ -17,13 +17,13 @@ module JUMP_CONTROLLER (
     assign active_blt = ($signed(rs1_data) < $signed(rs2_data)) ? 1'b1 : 1'b0;
 
     wire active_bge;
-    assign active_bge = ($signed(rs1_data) > $signed(rs2_data)) ? 1'b1 : 1'b0;
+    assign active_bge = ($signed(rs1_data) >= $signed(rs2_data)) ? 1'b1 : 1'b0;
     
     wire active_bltu;
     assign active_bltu = (rs1_data < rs2_data) ? 1'b1 : 1'b0;
 
     wire active_bgeu;
-    assign active_bgeu = (rs1_data > rs2_data) ? 1'b1 : 1'b0;
+    assign active_bgeu = (rs1_data >= rs2_data) ? 1'b1 : 1'b0;
 
     wire [31:0] jalr_target;
     assign jalr_target = (rs1_data + rs2_data) & ~32'b1;

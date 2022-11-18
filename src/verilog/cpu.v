@@ -2,8 +2,7 @@ module CPU (
     input wire clk, reset
 );
 
-// todo: ifによるストール実装
-// フォワーディング
+// todo: フォワーディング
 
 wire [31:0] alu_out;
 wire [31:0] rs1_data, rs2_data;
@@ -23,25 +22,25 @@ wire [31:0] mem_out;
 
 wire jump_flag;
 
-// IF
+// IF_ID
 reg [31:0] if_id_pc;
 reg [31:0] if_id_inst;
 
-// ID
+// ID_EX
 reg [31:0] id_ex_pc;
 reg [4:0] id_ex_alu_fn;
 reg [1:0] id_ex_rs1;
 reg [31:0] id_ex_rs1_data;
 reg [1:0] id_ex_rs2;
 reg [31:0] id_ex_rs2_data;
+reg [4:0] id_ex_rd_addr;
 reg [31:0] id_ex_imm;
 reg id_ex_mem_wen;
 reg [1:0] id_ex_wb_sel;
 reg id_ex_rf_wen;
-reg [4:0] id_ex_rd_addr;
 reg [2:0] id_ex_br;
 
-// EX
+// EX_MEM
 reg [31:0] ex_mem_pc;
 reg [31:0] ex_mem_rs2_data;
 reg [31:0] ex_mem_alu_out;
@@ -50,51 +49,60 @@ reg [1:0] ex_mem_wb_sel;
 reg ex_mem_rf_wen;
 reg [4:0] ex_mem_rd_addr;
 
-// MEM
+// MEM_WB
 reg [31:0] mem_wb_pc;
 reg [31:0] mem_wb_rs2_data;
 reg [31:0] mem_wb_alu_out;
+reg mem_wb_mem_wen; // ストールのため
 reg [31:0] mem_wb_mem_out;
 reg [1:0] mem_wb_wb_sel;
 reg mem_wb_rf_wen;
 reg [4:0] mem_wb_rd_addr;
-//WB
 
 always @(posedge clk) begin
-    // IF
-    if (!(have_data_hazard || have_branch_stall)) begin
+
+    // IF_ID
+    if (stall_flag_at_if && !stall_flag_at_id) begin
+        if_id_pc <= 0;
+        if_id_inst <= 0;
+    end else if (stall_flag_at_id) begin
+        if_id_pc <= if_id_pc;
+        if_id_inst <= if_id_inst;
+    end else begin
         if_id_pc <= pc;
         if_id_inst <= inst;
     end
-    else begin
-        if_id_pc <= if_id_pc;
-        if_id_inst <= if_id_inst;
-    end
 
-    // ID
-    id_ex_pc <= if_id_pc;
-    id_ex_rs1 <= rs1;
-    id_ex_rs1_data <= rs1_data;
-    id_ex_rs2 <= rs2;
-    id_ex_rs2_data <= rs2_data;
-    id_ex_rd_addr <= rd_addr;
-    id_ex_br <= br;
-    if (!(have_data_hazard || have_branch_stall)) begin
+    // ID_EX
+    if (stall_flag_at_id) begin
+        id_ex_pc <= 0;
+        id_ex_rs1 <= 0;
+        id_ex_rs1_data <= 0;
+        id_ex_rs2 <= 0;
+        id_ex_rs2_data <= 0;
+        id_ex_rd_addr <= 0;
+        id_ex_br <= 0;
+        id_ex_alu_fn <= 0;
+        id_ex_imm <= 0;
+        id_ex_mem_wen <= 0;
+        id_ex_wb_sel <= 0;
+        id_ex_rf_wen <= 0;
+    end else begin
+        id_ex_pc <= if_id_pc;
+        id_ex_rs1 <= rs1;
+        id_ex_rs1_data <= rs1_data;
+        id_ex_rs2 <= rs2;
+        id_ex_rs2_data <= rs2_data;
+        id_ex_rd_addr <= rd_addr;
+        id_ex_br <= br;
         id_ex_alu_fn <= alu_fn;
         id_ex_imm <= imm;
         id_ex_mem_wen <= mem_wen;
         id_ex_wb_sel <= wb_sel;
         id_ex_rf_wen <= rf_wen;
     end
-    else begin
-        id_ex_alu_fn <= `ALU_X;
-        id_ex_imm <= 32'b0;
-        id_ex_mem_wen <= `MEN_X;
-        id_ex_wb_sel <= `WB_X;
-        id_ex_rf_wen <= `REN_X;
-    end 
 
-    // EX
+    // EX_MEM
     ex_mem_pc <= id_ex_pc;
     ex_mem_rs2_data <= id_ex_rs2_data;
     ex_mem_alu_out <= alu_out;
@@ -103,13 +111,15 @@ always @(posedge clk) begin
     ex_mem_rf_wen <= id_ex_rf_wen;
     ex_mem_rd_addr <= id_ex_rd_addr;
 
-    // MEM
+    // MEM_WB
     mem_wb_pc <= ex_mem_pc;
     mem_wb_alu_out <= ex_mem_alu_out;
+    mem_wb_mem_wen <= ex_mem_mem_wen;
     mem_wb_mem_out <= mem_out;
     mem_wb_wb_sel <= ex_mem_wb_sel;
     mem_wb_rf_wen <= ex_mem_rf_wen;
     mem_wb_rd_addr <= ex_mem_rd_addr;
+
 end
 
 wire [31:0] alu_src1;
@@ -126,28 +136,29 @@ wire [31:0] mem_write_value;
 assign mem_write_value = (ex_mem_mem_wen) ? ex_mem_rs2_data : ex_mem_rs2_data;
 
 wire [31:0] rf_write_value;
-assign rf_write_value = (mem_wb_wb_sel == `WB_ALU) ? mem_wb_alu_out :
-                        (mem_wb_wb_sel == `WB_MEM) ? mem_wb_mem_out :
-                        (mem_wb_wb_sel == `WB_PC)  ? mem_wb_pc      : 32'd0 ;
+assign rf_write_value = (mem_wb_wb_sel == `WB_ALU) ? mem_wb_alu_out    :
+                        (mem_wb_wb_sel == `WB_MEM) ? mem_wb_mem_out    :
+                        (mem_wb_wb_sel == `WB_PC)  ? mem_wb_pc + 32'd4 : 32'd0 ;
 
 // 制御
-wire have_data_hazard;
-assign have_data_hazard = ((id_ex_rf_wen  && (id_ex_rd_addr == rs1_addr  || id_ex_rd_addr == rs2_addr)))  ||
+wire stall_flag_at_id;
+assign stall_flag_at_id = ((id_ex_rf_wen  && (id_ex_rd_addr  == rs1_addr || id_ex_rd_addr  == rs2_addr))) ||
                           ((ex_mem_rf_wen && (ex_mem_rd_addr == rs1_addr || ex_mem_rd_addr == rs2_addr))) ||
                           ((mem_wb_rf_wen && (mem_wb_rd_addr == rs1_addr || mem_wb_rd_addr == rs2_addr)))  ? 1'b1 : 1'b0;
-wire have_branch_stall;
-assign have_branch_stall = (id_ex_alu_fn == `BR_BEQ) || 
-                           (id_ex_alu_fn == `BR_BNE) || 
-                           (id_ex_alu_fn == `BR_BLT) || 
-                           (id_ex_alu_fn == `BR_BGE) || 
-                           (id_ex_alu_fn == `BR_BLTU) ||
-                           (id_ex_alu_fn == `BR_BGEU) || 
-                           (id_ex_alu_fn == `BR_JAL) ? 1'b1 : 1'b0;
+
+wire stall_flag_at_if;
+assign stall_flag_at_if = (id_ex_alu_fn == `BR_BEQ)  || 
+                          (id_ex_alu_fn == `BR_BNE)  || 
+                          (id_ex_alu_fn == `BR_BLT)  || 
+                          (id_ex_alu_fn == `BR_BGE)  || 
+                          (id_ex_alu_fn == `BR_BLTU) ||
+                          (id_ex_alu_fn == `BR_BGEU) || 
+                          (id_ex_alu_fn == `BR_JAL)  ? 1'b1 : 1'b0;
 
 PC pc_mod (
     .clk(clk), // input
     .reset(reset), // input
-    .stall(have_data_hazard || have_branch_stall), // input
+    .stall(stall_flag_at_if || stall_flag_at_id), // input
     .jump_flag(jump_flag), // input
     .jump_target(alu_out), // input
     .pc(pc) // output
