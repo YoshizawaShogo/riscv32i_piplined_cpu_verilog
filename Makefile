@@ -6,7 +6,7 @@ BUILDDIR := build
 $(shell mkdir -p ${BUILDDIR})
 
 CSRCDIR := ./src/c
-CSRCS := ${CSRCDIR}/abs.c ${CSRCDIR}/tmp.c # 単体ファイルしか対応していない  # 状況に応じて要変更
+CSRCS := ${CSRCDIR}/abs.c ${CSRCDIR}/tmp.c # 状況に応じて要変更 # 現在、CSRCSはCSRCDIRに無いといけない
 COBJS := ${CSRCS:${CSRCDIR}/%.c=${BUILDDIR}/%.o}
 CLINK := ${CSRCDIR}/link.ld
 CEXE := ${BUILDDIR}/c.exe
