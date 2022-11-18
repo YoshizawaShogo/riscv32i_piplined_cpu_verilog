@@ -13,10 +13,7 @@ module cpu_tb;
     always begin 
         #HALFCYCLE clk = ~clk;
         #HALFCYCLE clk = ~clk;
-        $display("alu_out = %d, memout= %d, addr = %d, en = %d,%d. data=%d, rs2_data = %d, hazard = %D", cpu.alu_out, cpu.data_mem.read_data, cpu.data_mem.addr, cpu.mem_wen, cpu.data_mem.write_en, cpu.data_mem.write_data, cpu.rs2_data, cpu.have_data_hazard);
-        // $display("pc = %d, %d, alu_out = %d, branch_flag = %d, jump = %d", 
-        //          cpu.pc, cpu.mem_wb_pc, cpu.mem_wb_alu_out, cpu.have_branch_stall, cpu.jump_flag);
-        // $display("%d, %d ", cpu.jump_controller.br, cpu.jump_controller.rs2_data);
+        $display("pc = %x, inst = %x, fn = %d, rs1 = %d, rs2 = %d, alu = %d, reg[%d]=%d, jump = %d,%d, rb = %d", cpu.pc, cpu.inst, cpu.alu.fn, cpu.alu_src1, cpu.alu_src2, cpu.alu_out, cpu.reg_file.rs2_addr, cpu.reg_file.rs2_data, cpu.jump_flag, cpu.id_ex_rs2_data, cpu.rf_write_value);
     end
 
     initial begin
@@ -24,5 +21,5 @@ module cpu_tb;
         reset = 1; #10 reset = 0;
     end
 
-    initial #100 $finish;
+    initial #10000 $finish;
 endmodule

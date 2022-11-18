@@ -24,7 +24,7 @@ assign rd_addr = inst[11:7];
 assign imm = (opcode == `IMM_LUI || opcode == `IMM_AUIPC) ? {inst[31:12], 12'd0} : // U-format
              (opcode == `IMM_JAL) ? {{11{inst[31]}},inst[31],inst[19:12],inst[20],inst[30:21],1'd0} : // J-format
              (opcode == `IMM_JALR || opcode == `IMM_LOAD || opcode == `IMM_OPIMI) ? {{20{inst[31]}},inst[31],inst[30:25],inst[24:21],inst[20]} : // I-format
-             (opcode == `IMM_BRANCH) ? {{18{inst[31]}},inst[31],inst[7],inst[30:25],inst[11:8],1'd0} : //B-format
+             (opcode == `IMM_BRANCH) ? {{19{inst[31]}},inst[31],inst[7],inst[30:25],inst[11:8],1'd0} : //B-format
              (opcode == `IMM_STORE) ? {{20{inst[31]}},inst[31],inst[30:25],inst[11:8],inst[7]} : 32'd0;// ? S-format : R-format(即値なし)
 
 function [15:0] parse;

@@ -9,7 +9,7 @@ module INST_MEM (
     reg [7:0] rom [0:16383];
 
     initial begin
-        $readmemh("build/c_sample.hex", rom);
+        $readmemh("build/c.hex", rom);
     end
 
     assign data = {rom[addr+3], rom[addr+2], rom[addr+1], rom[addr]};

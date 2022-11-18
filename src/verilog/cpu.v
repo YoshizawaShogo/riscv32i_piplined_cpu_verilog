@@ -72,13 +72,13 @@ always @(posedge clk) begin
     end
 
     // ID
-        id_ex_pc <= if_id_pc;
-        id_ex_rs1 <= rs1;
-        id_ex_rs1_data <= rs1_data;
-        id_ex_rs2 <= rs2;
-        id_ex_rs2_data <= rs2_data;
-        id_ex_rd_addr <= rd_addr;
-        id_ex_br <= br;
+    id_ex_pc <= if_id_pc;
+    id_ex_rs1 <= rs1;
+    id_ex_rs1_data <= rs1_data;
+    id_ex_rs2 <= rs2;
+    id_ex_rs2_data <= rs2_data;
+    id_ex_rd_addr <= rd_addr;
+    id_ex_br <= br;
     if (!(have_data_hazard || have_branch_stall)) begin
         id_ex_alu_fn <= alu_fn;
         id_ex_imm <= imm;

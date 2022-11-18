@@ -8,7 +8,7 @@ module DATA_MEM (
     output wire [31:0] read_data
 );
     // 4byte*4096行=16384byte=16KB
-    reg [31:0] rom [0:4095];
+    reg [31:0] rom [0:2**16 -1];
     
     always @(posedge clk) begin
         // 書き込んでいないメモリにアクセスすることは想定しない。
