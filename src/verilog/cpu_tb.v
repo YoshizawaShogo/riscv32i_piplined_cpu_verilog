@@ -16,6 +16,7 @@ module cpu_tb;
 
         $display("pc = %x, inst = %x. rf[10] = %d",
                 cpu.pc, cpu.inst, cpu.reg_file.reg_file[10]);
+        if (cpu.pc === 32'hxxxxxxxx) $finish;
     end
 
     initial begin
