@@ -1,12 +1,10 @@
-int aaabs(int a);
+int my_abs(int a);
 
 int main() {
-    volatile int a = -7777;
-    int b = aaabs(a);
-    return b;
+    return my_abs(-7777);
 }
 
-int aaabs(int x) {   
+int my_abs(int x) {   
     if (x < 0) return -x;
     else return x;
 }

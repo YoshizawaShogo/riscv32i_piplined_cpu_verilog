@@ -20,8 +20,6 @@ wire [1:0] wb_sel;
 wire [31:0] inst;
 wire [31:0] mem_out;
 
-wire jump_flag;
-
 // IF_ID
 reg [31:0] if_id_pc;
 reg [31:0] if_id_inst;
@@ -131,6 +129,15 @@ wire [31:0] alu_src2;
 assign alu_src2 = (id_ex_rs2 == `RS2_X)   ? 32'b0          :
                   (id_ex_rs2 == `RS2_RS2) ? id_ex_rs2_data :
                   (id_ex_rs2 == `RS2_IMI) ? id_ex_imm       : 32'bx;
+
+wire jump_flag;
+assign jump_flag = (id_ex_br == `BR_BEQ) && (id_ex_rs1_data == id_ex_rs2_data) ? 1'b1 :
+                   (id_ex_br == `BR_BNE) && (id_ex_rs1_data != id_ex_rs2_data) ? 1'b1 :
+                   (id_ex_br == `BR_BLT) && ($signed(id_ex_rs1_data) < $signed(id_ex_rs2_data)) ? 1'b1 :
+                   (id_ex_br == `BR_BGE) && ($signed(id_ex_rs1_data) >= $signed(id_ex_rs2_data)) ? 1'b1 :
+                   (id_ex_br == `BR_BLTU) && (id_ex_rs1_data < id_ex_rs2_data) ? 1'b1 :
+                   (id_ex_br == `BR_BGEU) && (id_ex_rs1_data >= id_ex_rs2_data) ? 1'b1 :
+                   (id_ex_br == `BR_JAL) ? 1'b1 : 1'b0;
                
 wire [31:0] mem_write_value;
 assign mem_write_value = (ex_mem_mem_wen) ? ex_mem_rs2_data : ex_mem_rs2_data;
@@ -189,13 +196,6 @@ REG_FILE reg_file (
     .rs2_addr(rs2_addr), // input
     .rs1_data(rs1_data), // output
     .rs2_data(rs2_data) // output
-);
-
-JUMP_CONTROLLER jump_controller (
-    .br(id_ex_br), // input
-    .rs1_data(id_ex_rs1_data), // input
-    .rs2_data(id_ex_rs2_data), // input
-    .jump_flag(jump_flag) // output
 );
 
 ALU alu (

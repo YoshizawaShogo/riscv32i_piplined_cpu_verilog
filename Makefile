@@ -33,10 +33,11 @@ ${CDUMP}: ${CEXE}
 	riscv32-unknown-elf-objdump $< --disassemble-all --disassemble-zeroes > $@
 ${CEXE}: ${COBJS}
 	riscv32-unknown-elf-gcc $^ -march=rv32i -mabi=ilp32 -o $@ -static -nostdlib -nostartfiles -T ${CLINK}
-${COBJS}: ${BUILDDIR}/%.o: ${CSRCDIR}/%.c
+${COBJS}: ${BUILDDIR}/%.o: ${CSRCDIR}/%.c Makefile
 	riscv32-unknown-elf-gcc $< -c -march=rv32i -mabi=ilp32 -o $@ -nostdlib
 .PHONY: run 
 run: ${RESULT} ${CDUMP}
+	@echo "Return value: $(shell tail -n1 ${RESULT} | rev | cut -d " " -f 1 | rev)"
 ${RESULT}: ${VEXE}
 	./$< > $@
 

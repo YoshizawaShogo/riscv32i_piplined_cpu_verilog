@@ -24,5 +24,5 @@ module cpu_tb;
         reset = 1; #CYCLE reset = 0;
     end
 
-    initial #(5000 * CYCLE) $finish;
+    initial #(1000000 * CYCLE) $finish;
 endmodule
