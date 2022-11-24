@@ -14,9 +14,9 @@ module cpu_tb;
         #HALFCYCLE clk = ~clk;
         #HALFCYCLE clk = ~clk;
 
-        $display("pc = %x, inst = %x. stall = %d, rf[10] = %d",
-                cpu.pc, cpu.inst, cpu.stall_flag_at_if || cpu.stall_flag_at_id, cpu.reg_file.reg_file[10]);
-        if (cpu.pc === 32'hxxxxxxxx) $finish;
+        $display("pc = %x, inst = %x. stall = %d, %d, rf[10] = %d",
+                cpu.pc, cpu.inst, cpu.stall_flag_at_if,  cpu.stall_flag_at_id, cpu.reg_file.reg_file[10]);
+        if (cpu.pc === 32'hxxxxxxxx || cpu.pc === 32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0) $finish;
     end
 
     initial begin
