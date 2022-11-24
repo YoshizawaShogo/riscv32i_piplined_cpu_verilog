@@ -14,7 +14,7 @@ wire [2:0] br;
 wire [31:0] imm;
 wire [4:0] rs1_addr, rs2_addr, rd_addr;
 wire [4:0] alu_fn;
-wire mem_wen, rf_wen;
+wire mem_wen;
 wire [1:0] wb_sel;
 
 wire [31:0] inst;
@@ -35,7 +35,6 @@ reg [4:0] id_ex_rd_addr;
 reg [31:0] id_ex_imm;
 reg id_ex_mem_wen;
 reg [1:0] id_ex_wb_sel;
-reg id_ex_rf_wen;
 reg [2:0] id_ex_br;
 
 // EX_MEM
@@ -44,7 +43,6 @@ reg [31:0] ex_mem_rs2_data;
 reg [31:0] ex_mem_alu_out;
 reg ex_mem_mem_wen;
 reg [1:0] ex_mem_wb_sel;
-reg ex_mem_rf_wen;
 reg [4:0] ex_mem_rd_addr;
 
 // MEM_WB
@@ -54,14 +52,12 @@ reg [31:0] mem_wb_alu_out;
 reg mem_wb_mem_wen; // ストールのため
 reg [31:0] mem_wb_mem_out;
 reg [1:0] mem_wb_wb_sel;
-reg mem_wb_rf_wen;
 reg [4:0] mem_wb_rd_addr;
 
 always @(posedge clk) begin
 
     // IF_ID
     if (stall_flag_at_if && !stall_flag_at_id) begin
-        if_id_pc <= 0;
         if_id_inst <= 0;
     end else if (stall_flag_at_id) begin
         if_id_pc <= if_id_pc;
@@ -84,7 +80,6 @@ always @(posedge clk) begin
         id_ex_imm <= 0;
         id_ex_mem_wen <= 0;
         id_ex_wb_sel <= 0;
-        id_ex_rf_wen <= 0;
     end else begin
         id_ex_pc <= if_id_pc;
         id_ex_rs1 <= rs1;
@@ -97,7 +92,6 @@ always @(posedge clk) begin
         id_ex_imm <= imm;
         id_ex_mem_wen <= mem_wen;
         id_ex_wb_sel <= wb_sel;
-        id_ex_rf_wen <= rf_wen;
     end
 
     // EX_MEM
@@ -106,7 +100,6 @@ always @(posedge clk) begin
     ex_mem_alu_out <= alu_out;
     ex_mem_mem_wen <= id_ex_mem_wen;
     ex_mem_wb_sel <= id_ex_wb_sel;
-    ex_mem_rf_wen <= id_ex_rf_wen;
     ex_mem_rd_addr <= id_ex_rd_addr;
 
     // MEM_WB
@@ -115,7 +108,6 @@ always @(posedge clk) begin
     mem_wb_mem_wen <= ex_mem_mem_wen;
     mem_wb_mem_out <= mem_out;
     mem_wb_wb_sel <= ex_mem_wb_sel;
-    mem_wb_rf_wen <= ex_mem_rf_wen;
     mem_wb_rd_addr <= ex_mem_rd_addr;
 
 end
@@ -149,9 +141,9 @@ assign rf_write_value = (mem_wb_wb_sel == `WB_ALU) ? mem_wb_alu_out    :
 
 // 制御
 wire stall_flag_at_id;
-assign stall_flag_at_id = ((id_ex_rf_wen  && (id_ex_rd_addr  == rs1_addr || id_ex_rd_addr  == rs2_addr))) ||
-                          ((ex_mem_rf_wen && (ex_mem_rd_addr == rs1_addr || ex_mem_rd_addr == rs2_addr))) ||
-                          ((mem_wb_rf_wen && (mem_wb_rd_addr == rs1_addr || mem_wb_rd_addr == rs2_addr)))  ? 1'b1 : 1'b0;
+assign stall_flag_at_id = ((id_ex_wb_sel == `WB_PC || id_ex_wb_sel == `WB_ALU || id_ex_wb_sel == `WB_MEM) && (id_ex_rd_addr  == rs1_addr || id_ex_rd_addr  == rs2_addr)) ||
+                          ((ex_mem_wb_sel == `WB_PC || ex_mem_wb_sel == `WB_ALU || ex_mem_wb_sel == `WB_MEM) && (ex_mem_rd_addr == rs1_addr || ex_mem_rd_addr == rs2_addr)) ||
+                          ((mem_wb_wb_sel == `WB_PC || mem_wb_wb_sel == `WB_ALU || mem_wb_wb_sel == `WB_MEM) && (mem_wb_rd_addr == rs1_addr || mem_wb_rd_addr == rs2_addr))  ? 1'b1 : 1'b0;
 
 wire stall_flag_at_if;
 assign stall_flag_at_if = (id_ex_alu_fn == `BR_BEQ)  || 
@@ -179,7 +171,6 @@ DECODER decoder (
     .rd_addr(rd_addr), // output
     .alu_fn(alu_fn), // output
     .mem_wen(mem_wen), // output
-    .rf_wen(rf_wen), // output
     .wb_sel(wb_sel), // output
     .rs1(rs1), // output 
     .rs2(rs2), // output
@@ -189,7 +180,7 @@ DECODER decoder (
 REG_FILE reg_file (
     .clk(clk), // input
     .reset(reset), // input
-    .write_en(mem_wb_rf_wen), // input
+    .write_en(mem_wb_wb_sel == `WB_PC || mem_wb_wb_sel == `WB_ALU || mem_wb_wb_sel == `WB_MEM), // input
     .write_addr(mem_wb_rd_addr), // input
     .write_value(rf_write_value), // input
     .rs1_addr(rs1_addr), // input
