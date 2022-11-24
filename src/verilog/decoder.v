@@ -29,7 +29,7 @@ assign imm = (opcode == `IMM_LUI || opcode == `IMM_AUIPC) ? {inst[31:12], 12'd0}
 
 function [13:0] parse;
     input [31:0] inst;
-    casex (inst) //    ALU_fn,    ALU_src1, ALU_src2, MEM_fn, RF_fn,  WB_select, branch
+    casex (inst) //    ALU_fn,    ALU_src1, ALU_src2, MEM_fn,  WB_select, branch
     `LW    : parse = {`ALU_ADD,  `RS1_RS1, `RS2_IMI, `MEN_X, `WB_MEM, `BR_X    };
     `SW    : parse = {`ALU_ADD,  `RS1_RS1, `RS2_IMI, `MEN_S, `WB_X  , `BR_X    };
     `ADD   : parse = {`ALU_ADD,  `RS1_RS1, `RS2_RS2, `MEN_X, `WB_ALU, `BR_X    };

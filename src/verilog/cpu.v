@@ -163,13 +163,13 @@ wire stall_flag_at_id;
 assign stall_flag_at_id = ((id_ex_wb_sel == `WB_MEM) && (id_ex_rd_addr  == rs1_addr || id_ex_rd_addr  == rs2_addr)) ? 1'b1 : 1'b0;
 
 wire stall_flag_at_if;
-assign stall_flag_at_if = (id_ex_alu_fn == `BR_BEQ)  || 
-                          (id_ex_alu_fn == `BR_BNE)  || 
-                          (id_ex_alu_fn == `BR_BLT)  || 
-                          (id_ex_alu_fn == `BR_BGE)  || 
-                          (id_ex_alu_fn == `BR_BLTU) ||
-                          (id_ex_alu_fn == `BR_BGEU) || 
-                          (id_ex_alu_fn == `BR_JAL)  ? 1'b1 : 1'b0;
+assign stall_flag_at_if = (id_ex_br == `BR_BEQ)  || 
+                          (id_ex_br == `BR_BNE)  || 
+                          (id_ex_br == `BR_BLT)  || 
+                          (id_ex_br == `BR_BGE)  || 
+                          (id_ex_br == `BR_BLTU) ||
+                          (id_ex_br == `BR_BGEU) || 
+                          (id_ex_br == `BR_JAL)  ? 1'b1 : 1'b0;
 
 PC pc_mod (
     .clk(clk), // input
