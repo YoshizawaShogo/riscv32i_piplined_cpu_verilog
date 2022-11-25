@@ -169,7 +169,14 @@ assign stall_flag_at_if = (id_ex_br == `BR_BEQ)  ||
                           (id_ex_br == `BR_BGE)  || 
                           (id_ex_br == `BR_BLTU) ||
                           (id_ex_br == `BR_BGEU) || 
-                          (id_ex_br == `BR_JAL)  ? 1'b1 : 1'b0;
+                          (id_ex_br == `BR_JAL)  ||
+                          (br == `BR_BEQ)  || 
+                          (br == `BR_BNE)  || 
+                          (br == `BR_BLT)  || 
+                          (br == `BR_BGE)  ||
+                          (br == `BR_BLTU) ||
+                          (br == `BR_BGEU) || 
+                          (br == `BR_JAL)  ? 1'b1 : 1'b0;
 
 PC pc_mod (
     .clk(clk), // input
