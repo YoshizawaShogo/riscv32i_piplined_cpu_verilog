@@ -9,7 +9,7 @@ COBJS := ${CSRCS:${CSRCDIR}/%.c=${BUILDDIR}/%.o}
 CLINK := ${CSRCDIR}/link.ld
 CEXE := ${BUILDDIR}/target_program
 CDUMP := ${CEXE}.dump
-CBIN :=${CEXE}.bin
+CBIN := ${CEXE}.bin
 CHEX := ${CEXE}.hex
 RESULT := ${BUILDDIR}/result.log
 
@@ -40,6 +40,19 @@ run: ${RESULT} ${CDUMP}
 	@echo "Return value: $(shell tail -n1 ${RESULT} | rev | cut -d " " -f 1 | rev)"
 ${RESULT}: ${VEXE}
 	./$< > $@
+
+test:
+	$(MAKE) ${VINSTMEM}
+	$(MAKE) -C riscv-tests/isa
+	mkdir -p ${BUILDDIR}/isa
+	@# ユニットテストを一時ディレクトリbuildにコピー
+	find riscv-tests/isa/* -maxdepth 0 -type f -not -name 'Makefile' -exec cp {} ${BUILDDIR}/isa/ \;
+	@# .exe を .bin に変換
+	cd ${BUILDDIR}/isa; for exe in $$(ls | grep -v -e "\."); do riscv32-unknown-elf-objcopy -O binary $$exe $${exe}.bin; done
+	@# .bin を .hex に変換
+	cd ${BUILDDIR}/isa; for exe in $$(ls | grep -v -e "\."); do od -An -tx1 -w1 -v $${exe}.bin > $${exe}.hex; done
+	@# .hex を読み込んでエミュレート
+	for exe in $$(ls ${BUILDDIR}/isa | grep -v -e "\."); do sed -i -e "s&[^\"]*\.hex&${BUILDDIR}/isa/$${exe}.hex&" ${VINSTMEM}; echo -n "$$exe: "; ${MAKE} run -s; done
 
 .PHONY: clean
 clean:

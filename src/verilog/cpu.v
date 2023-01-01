@@ -11,6 +11,7 @@ wire [31:0] pc;
 wire [1:0] rs1;
 wire [1:0] rs2;
 wire [2:0] br;
+wire ecall;
 wire [31:0] imm;
 wire [4:0] rs1_addr, rs2_addr, rd_addr;
 wire [4:0] alu_fn;
@@ -36,9 +37,11 @@ reg [31:0] id_ex_imm;
 reg id_ex_mem_wen;
 reg [1:0] id_ex_wb_sel;
 reg [2:0] id_ex_br;
+reg id_ex_ecall;
 
 // EX_MEM
 reg [31:0] ex_mem_pc;
+reg ex_mem_ecall;
 reg [31:0] ex_mem_rs2_data;
 reg [31:0] ex_mem_alu_out;
 reg ex_mem_mem_wen;
@@ -47,6 +50,7 @@ reg [4:0] ex_mem_rd_addr;
 
 // MEM_WB
 reg [31:0] mem_wb_pc;
+reg mem_wb_ecall;
 reg [31:0] mem_wb_rs2_data;
 reg [31:0] mem_wb_alu_out;
 reg mem_wb_mem_wen; // ストールのため
@@ -76,6 +80,7 @@ always @(posedge clk) begin
         id_ex_rs2_data <= 0;
         id_ex_rd_addr <= 0;
         id_ex_br <= 0;
+        id_ex_ecall <= 0;
         id_ex_alu_fn <= 0;
         id_ex_imm <= 0;
         id_ex_mem_wen <= 0;
@@ -84,7 +89,8 @@ always @(posedge clk) begin
         id_ex_pc <= if_id_pc;
         id_ex_rs1 <= rs1;
         // フォワーディング
-        if(id_ex_rd_addr == rs1_addr && id_ex_wb_sel == `WB_PC) id_ex_rs1_data <= id_ex_pc + 32'd4;
+        if(rs1_addr == 0) id_ex_rs1_data <= 0;
+        else if(id_ex_rd_addr == rs1_addr && id_ex_wb_sel == `WB_PC) id_ex_rs1_data <= id_ex_pc + 32'd4;
         else if(id_ex_rd_addr == rs1_addr && id_ex_wb_sel == `WB_ALU) id_ex_rs1_data <= alu_out;
         else if(ex_mem_rd_addr == rs1_addr && ex_mem_wb_sel == `WB_PC) id_ex_rs1_data <= ex_mem_pc + 32'd4;
         else if(ex_mem_rd_addr == rs1_addr && ex_mem_wb_sel == `WB_ALU) id_ex_rs1_data <= ex_mem_alu_out;
@@ -96,7 +102,8 @@ always @(posedge clk) begin
 
         id_ex_rs2 <= rs2;
         // フォワーディング
-        if(id_ex_rd_addr == rs2_addr && id_ex_wb_sel == `WB_PC) id_ex_rs2_data <= id_ex_pc + 32'd4;
+        if(rs2_addr == 0) id_ex_rs2_data <= 0;
+        else if(id_ex_rd_addr == rs2_addr && id_ex_wb_sel == `WB_PC) id_ex_rs2_data <= id_ex_pc + 32'd4;
         else if(id_ex_rd_addr == rs2_addr && id_ex_wb_sel == `WB_ALU) id_ex_rs2_data <= alu_out;
         else if(ex_mem_rd_addr == rs2_addr && ex_mem_wb_sel == `WB_PC) id_ex_rs2_data <= ex_mem_pc + 32'd4;
         else if(ex_mem_rd_addr == rs2_addr && ex_mem_wb_sel == `WB_ALU) id_ex_rs2_data <= ex_mem_alu_out;
@@ -107,6 +114,7 @@ always @(posedge clk) begin
         else id_ex_rs2_data <= rs2_data;
         id_ex_rd_addr <= rd_addr;
         id_ex_br <= br;
+        id_ex_ecall <= ecall;
         id_ex_alu_fn <= alu_fn;
         id_ex_imm <= imm;
         id_ex_mem_wen <= mem_wen;
@@ -115,6 +123,7 @@ always @(posedge clk) begin
 
     // EX_MEM
     ex_mem_pc <= id_ex_pc;
+    ex_mem_ecall <= id_ex_ecall;
     ex_mem_rs2_data <= id_ex_rs2_data;
     ex_mem_alu_out <= alu_out;
     ex_mem_mem_wen <= id_ex_mem_wen;
@@ -123,12 +132,14 @@ always @(posedge clk) begin
 
     // MEM_WB
     mem_wb_pc <= ex_mem_pc;
+    mem_wb_ecall <= ex_mem_ecall;
     mem_wb_alu_out <= ex_mem_alu_out;
     mem_wb_mem_wen <= ex_mem_mem_wen;
     mem_wb_mem_out <= mem_out;
     mem_wb_wb_sel <= ex_mem_wb_sel;
     mem_wb_rd_addr <= ex_mem_rd_addr;
 
+    if(mem_wb_ecall) $finish;
 end
 
 wire [31:0] alu_src1;
@@ -198,7 +209,8 @@ DECODER decoder (
     .wb_sel(wb_sel), // output
     .rs1(rs1), // output 
     .rs2(rs2), // output
-    .br(br)
+    .br(br),
+    .ecall(ecall) //
 );
 
 REG_FILE reg_file (
