@@ -26,13 +26,13 @@ module ALU (
 
     // シフト
     wire [31:0] sll_out;
-    assign sll_out = src1 << src2;
+    assign sll_out = src1 << src2[4:0];
 
     wire [31:0] srl_out;
-    assign srl_out = src1 >> src2;
+    assign srl_out = src1 >> src2[4:0];
 
     wire [31:0] sra_out;
-    assign sra_out = src1 >>> src2;
+    assign sra_out = $signed(src1) >>> src2[4:0];
 
     // 比較
     wire [31:0] slt_out;
