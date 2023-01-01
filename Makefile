@@ -47,7 +47,7 @@ test:
 	mkdir -p ${BUILDDIR}/isa
 	@# ユニットテストを一時ディレクトリbuildにコピー
 	find riscv-tests/isa/* -maxdepth 0 -type f -not -name 'Makefile' -exec cp {} ${BUILDDIR}/isa/ \;
-	@# .exe を .bin に変換
+	@# ELF(実行ファイル) を .bin に変換
 	cd ${BUILDDIR}/isa; for exe in $$(ls | grep -v -e "\."); do riscv32-unknown-elf-objcopy -O binary $$exe $${exe}.bin; done
 	@# .bin を .hex に変換
 	cd ${BUILDDIR}/isa; for exe in $$(ls | grep -v -e "\."); do od -An -tx1 -w1 -v $${exe}.bin > $${exe}.hex; done
