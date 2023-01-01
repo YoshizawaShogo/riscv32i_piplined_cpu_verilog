@@ -1,15 +1,12 @@
 // RV32Iのみ(例外処理もなし)
 
 // 命令の識別
-`define IMM_LUI     7'b0110111
-`define IMM_AUIPC   7'b0010111
-`define IMM_JAL     7'b1101111
-`define IMM_JALR    7'b1100111
-`define IMM_BRANCH  7'b1100011
-`define IMM_LOAD    7'b0000011
-`define IMM_STORE   7'b0100011
-`define IMM_OPIMI   7'b0010011 //OPERATION IMIDIATE
-`define IMM_OPRS2   7'b0110011 //OPERATION RS2
+`define IMM_X  3'd0
+`define IMM_I  3'd1
+`define IMM_S  3'd2
+`define IMM_B  3'd3
+`define IMM_U  3'd4
+`define IMM_J  3'd5
 
 // alu fn
 `define ALU_X    4'd0
