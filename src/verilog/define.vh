@@ -1,7 +1,5 @@
 // RV32Iのみ(例外処理もなし)
 
-
-
 // alu fn
 `define ALU_X    4'd0
 `define ALU_ADD  4'd1
@@ -36,9 +34,15 @@
 `define RS2_RS2  2'd1
 `define RS2_IMI  2'd2
 
-// mem_wen
-`define MEN_X   1'd0
-`define MEN_S   1'd1
+// mem_fn
+`define MEM_LB   3'd0
+`define MEM_LH   3'd1
+`define MEM_LW   3'd2
+`define MEM_LBU  3'd3
+`define MEM_LHU  3'd4
+`define MEM_SB   3'd5
+`define MEM_SH   3'd6
+`define MEM_SW   3'd7
 
 // wb_sel
 `define WB_X      2'd0
