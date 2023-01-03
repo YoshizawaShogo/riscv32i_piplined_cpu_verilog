@@ -1,5 +1,6 @@
 default: run
 
+SHELL := /bin/bash
 BUILDDIR := build
 $(shell mkdir -p ${BUILDDIR})
 
@@ -18,6 +19,7 @@ VTESTBENCH := ${VSRCDIR}/cpu_tb.v # 状況に応じて要変更
 TOPMODULE := $(shell sed -ze "s/.*module \([^;]*\).*/\1/" ${VTESTBENCH})
 VSRCS := ${wildcard ${VSRCDIR}/*.v}
 VINSTMEM := ${VSRCDIR}/inst_mem.v
+VDATAMEM := ${VSRCDIR}/data_mem.v
 VEXE := ${BUILDDIR}/riscv_emulation
 
 ${VEXE}: ${VSRCS}
@@ -52,7 +54,15 @@ test:
 	@# .bin を .hex に変換
 	cd ${BUILDDIR}/isa; for exe in $$(ls | grep -v -e "\."); do od -An -tx1 -w1 -v $${exe}.bin > $${exe}.hex; done
 	@# .hex を読み込んでエミュレート。命令00018513が実行されているかどうかで、テストをpassしているかを判断。
-	for exe in $$(ls ${BUILDDIR}/isa | grep -v -e "\."); do sed -i -e "s&[^\"]*\.hex&${BUILDDIR}/isa/$${exe}.hex&" ${VINSTMEM}; echo "$$exe: "; ${MAKE} run -s > /dev/null; cat ${BUILDDIR}/result.log | grep -n 00018513 || echo ok; done
+	for exe in $$(ls ${BUILDDIR}/isa | grep -v -e "\."); do \
+		sed -i -e "s&[^\"]*\.hex&${BUILDDIR}/isa/$${exe}.hex&" ${VINSTMEM};\
+		sed -i -e "s&[^\"]*\.hex&${BUILDDIR}/isa/$${exe}.hex&" ${VDATAMEM};\
+		echo -n "$$exe: ";\
+		${MAKE} run -s > /dev/null;\
+		cat ${BUILDDIR}/result.log | grep -n 00018513 > /dev/null \
+		&& echo -e "\e[31m no \e[m" \
+		|| echo -e "\e[32m ok \e[m" ;\
+	done
 
 .PHONY: clean
 clean:
