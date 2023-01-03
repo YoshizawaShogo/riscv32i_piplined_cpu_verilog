@@ -1,0 +1,3 @@
+[submodule "redo"]
+	path = riscv-tests
+	url = https://github.com/YoshizawaShogo/riscv-tests
