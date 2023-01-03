@@ -232,16 +232,13 @@ ALU alu (
     .out(alu_out) // output
 );
 
-INST_MEM inst_name (
-    .addr(pc), // input
-    .data(inst) // output
-);
-
-DATA_MEM data_mem (
+MEM mem (
     .clk(clk), // input
-    .fn(ex_mem_mem_fn), // input
+    .pc(pc), // input
+    .mem_fn(ex_mem_mem_fn), // input
     .addr(ex_mem_alu_out), // input
     .write_data(ex_mem_rs2_data), // input
+    .inst(inst), // output
     .read_data(mem_out) // output
 );
     
