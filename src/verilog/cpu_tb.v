@@ -15,7 +15,7 @@ module cpu_tb;
         #HALFCYCLE clk = ~clk;
 
         $display("pc = %x, inst = %x. alu_out = %d, rf[] = %d",
-                cpu.pc, cpu.inst, cpu.alu_out, cpu.reg_file.reg_file[1]);
+                cpu.pc, cpu.inst, cpu.alu_out, cpu.reg_file.reg_file[10]);
         if (cpu.pc === 32'hxxxxxxxx || cpu.pc === 32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0) $finish;
     end
 
@@ -24,5 +24,9 @@ module cpu_tb;
         reset = 1; #CYCLE reset = 0;
     end
 
-    initial #(100000 * CYCLE) $finish;
+    initial #(100000 * CYCLE) begin
+        $display("Timeout_Error");
+        $finish;
+    end
+
 endmodule

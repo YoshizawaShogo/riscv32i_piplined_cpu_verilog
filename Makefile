@@ -52,14 +52,15 @@ test:
 	cd ${BUILDDIR}/isa; for exe in $$(ls | grep -v -e "\."); do riscv32-unknown-elf-objcopy -O binary $$exe $${exe}.bin; done
 	@# .bin を .hex に変換
 	cd ${BUILDDIR}/isa; for exe in $$(ls | grep -v -e "\."); do od -An -tx1 -w1 -v $${exe}.bin > $${exe}.hex; done
-	@# .hex を読み込んでエミュレート。命令00018513が実行されているかどうかで、テストをpassしているかを判断。
+	@# .hex を読み込んでエミュレート。
+	@# ecall時に、a0(返り値を格納する、10番目のレジスタ)を出力し、その値が0であるかを確認する。
 	for exe in $$(ls ${BUILDDIR}/isa | grep -v -e "\."); do \
 		sed -i -e "s&[^\"]*\.hex&${BUILDDIR}/isa/$${exe}.hex&" ${VMEM};\
 		echo -n "$$exe: ";\
-		${MAKE} run -s > /dev/null;\
-		cat ${BUILDDIR}/result.log | grep -n 00018513 > /dev/null \
-		&& echo -e "\e[31m no \e[m" \
-		|| echo -e "\e[32m ok \e[m" ;\
+		${MAKE} run -s ;\
+		[ "$$(tail -n1 ${RESULT} | rev | cut -d " " -f 1 | rev)" -eq "0" ] \
+		&& echo -e "\e[32m ok \e[m" \
+		|| echo -e "\e[31m no \e[m" ;\
 	done
 
 .PHONY: clean

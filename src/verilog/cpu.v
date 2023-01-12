@@ -139,7 +139,10 @@ always @(posedge clk) begin
     mem_wb_wb_sel <= ex_mem_wb_sel;
     mem_wb_rd_addr <= ex_mem_rd_addr;
 
-    if(mem_wb_ecall) $finish;
+    if(mem_wb_ecall) begin
+        $display("%d", reg_file.reg_file[10]);
+        $finish;
+    end
 end
 
 wire [31:0] alu_src1;
