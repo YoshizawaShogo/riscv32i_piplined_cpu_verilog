@@ -1,68 +1,103 @@
-default: run
+.PHONY: defaultrtl
+default: nothing
+nothing:
+	@echo "Choose any target."
+all: unit-test isa-test benchmark-test
 
 SHELL := /bin/bash
-BUILDDIR := build
+BUILDDIR ?= build
 $(shell mkdir -p ${BUILDDIR})
 
-CSRCDIR := ./src/c
-CSRCS := ${CSRCDIR}/for.c ${CSRCDIR}/tmp.c # 状況に応じて要変更 # 現在、CSRCSはCSRCDIRに無いといけない
-COBJS := ${CSRCS:${CSRCDIR}/%.c=${BUILDDIR}/%.o}
-CLINK := ${CSRCDIR}/link.ld
-CEXE := ${BUILDDIR}/target_program
-CDUMP := ${CEXE}.dump
-CBIN := ${CEXE}.bin
-CHEX := ${CEXE}.hex
-RESULT := ${BUILDDIR}/result.log
+RISCV_TESTS ?= riscv-tests
 
-VSRCDIR := ./src/verilog
-VTESTBENCH := ${VSRCDIR}/cpu_tb.v # 状況に応じて要変更
-TOPMODULE := $(shell sed -ze "s/.*module \([^;]*\).*/\1/" ${VTESTBENCH})
-VSRCS := ${wildcard ${VSRCDIR}/*.v}
-VMEM := ${VSRCDIR}/mem.v
-VEXE := ${BUILDDIR}/riscv_emulation
+### common ###
+# common 変数
+VSRCDIR := ./src/rtl
+VSRCS := $(wildcard ${VSRCDIR}/*.v)
+VHSRCS := $(wildcard ${VSRCDIR}/*.vh)
+ORIGINAL_EMULATOR ?= src/emulator/cpu_emulator.v
+# common 依存関係
+.PRECIOUS: %.testbench_log %.testbench_src %.testbench_exe %.hex %.bin
+%.testbench_log: %.testbench_exe
+	@./$< > $@
+%.testbench_exe: %.testbench_src ${VSRCS} ${VHSRCS}
+	@topmodule=$$(grep $< -e ^module | head -n1 | sed -E "s/^module (\w+).*/\1/g") && \
+    iverilog $< ${VSRCS} -I ${VSRCDIR} -s $${topmodule} -o $@
+%.testbench_src: %.hex ${ORIGINAL_EMULATOR}
+	@cp ${ORIGINAL_EMULATOR} $@
+	@finish_flag=$$(sed -zE "s/.*8([0-9a-f]+) <tohost_exit>.*/\1/g" riscv-tests/benchmarks/my.riscv.dump) && \
+    sed -i -e "s&[^\"]*\.hex&$<&" -e "s&xxxxxxx&$${finish_flag}&" $@
+%.hex: %.bin
+	@od -An -tx1 -w1 -v $< > $@
+%.bin: %
+	@riscv32-unknown-elf-objcopy -O binary $< $@
 
-${VEXE}: ${VSRCS}
-	iverilog $^ -I ${VSRCDIR} -s ${TOPMODULE} -o $@
-${VMEM}: ${CHEX}
-	sed -i -e "s&[^\"]*\.hex&$<&" $@
-${CHEX}: ${CBIN}
-	od -An -tx1 -w1 -v $< > $@
-${CBIN}: ${CEXE}
-	riscv32-unknown-elf-objcopy -O binary $< $@
+### unit test ###
+# unit 変数
+UNIT_SRC_DIR := src/unit_test
+UNIT_BUILD_DIR := ${BUILDDIR}/unit_test
+$(shell mkdir -p ${UNIT_BUILD_DIR})
+UNIT_TESTBENCH_ORIGINAL_SRC := $(wildcard ${UNIT_SRC_DIR}/*.testbench_src)
+UNIT_TESTBENCH_BUILD_SRC := ${UNIT_TESTBENCH_ORIGINAL_SRC:${UNIT_SRC_DIR}/%=${UNIT_BUILD_DIR}/%}
+UNIT_TESTBENCH_EXE := ${UNIT_TESTBENCH_BUILD_SRC:%.testbench_src=%.testbench_exe}
+UNIT_LOG := ${UNIT_TESTBENCH_BUILD_SRC:%.testbench_src=%.testbench_log}
+# 依存関係
+.PHONY: unit-test
+unit-test: ${UNIT_LOG}
+	@echo -e "Unit test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
+${UNIT_BUILD_DIR}/%.testbench_src: ${UNIT_SRC_DIR}/%.testbench_src
+	@cp $< $@
 
-${CDUMP}: ${CEXE}
-	riscv32-unknown-elf-objdump $< --disassemble-all --disassemble-zeroes > $@
-${CEXE}: ${COBJS}
-	riscv32-unknown-elf-gcc $^ -march=rv32i -mabi=ilp32 -o $@ -static -nostdlib -nostartfiles -T ${CLINK}
-${COBJS}: ${BUILDDIR}/%.o: ${CSRCDIR}/%.c Makefile
-	riscv32-unknown-elf-gcc $< -c -march=rv32i -mabi=ilp32 -o $@ -nostdlib
-.PHONY: run 
-run: ${RESULT} ${CDUMP}
-	@echo "Return value: $(shell tail -n1 ${RESULT} | rev | cut -d " " -f 1 | rev)"
-${RESULT}: ${VEXE}
-	./$< > $@
+### isa test ###
+# isa 変数
+ISA_ORIGINAL_DIR := ${RISCV_TESTS}/isa
+ISA_BUILD_DIR := ${BUILDDIR}/isa_test
+$(shell mkdir -p ${ISA_BUILD_DIR})
+ISA_DUMP := $(wildcard ${ISA_ORIGINAL_DIR}/*.dump)
+ISA_ORIGINAL_EXE := ${ISA_DUMP:${ISA_ORIGINAL_DIR}/%.dump=${ISA_ORIGINAL_DIR}/%}
+ISA_BUILD_EXE := ${ISA_ORIGINAL_EXE:${ISA_ORIGINAL_DIR}/%=${ISA_BUILD_DIR}/%}
+ISA_BIN := ${ISA_BUILD_EXE:%=%.bin}
+ISA_HEX := ${ISA_BUILD_EXE:%=%.hex}
+ISA_TESTBENCH_SRC := ${ISA_BUILD_EXE:%=%.testbench_src}
+ISA_TESTBENCH_EXE := ${ISA_BUILD_EXE:%=%.testbench_exe}
+ISA_LOG := ${ISA_BUILD_EXE:%=%.testbench_log}
+# isa 依存関係
+.PHONY: isa-test
+isa-test: ${ISA_LOG}
+	@echo -e "ISA test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
+${ISA_BUILD_EXE}: ${ISA_ORIGINAL_EXE}
+	@cp $(subst ${ISA_BUILD_DIR},${ISA_ORIGINAL_DIR},$@) $@
 
-test:
-	$(MAKE) ${VMEM}
-	$(MAKE) -C riscv-tests/isa
-	mkdir -p ${BUILDDIR}/isa
-	@# ユニットテストを一時ディレクトリbuildにコピー
-	find riscv-tests/isa/* -maxdepth 0 -type f -not -name 'Makefile' -exec cp {} ${BUILDDIR}/isa/ \;
-	@# ELF(実行ファイル) を .bin に変換
-	cd ${BUILDDIR}/isa; for exe in $$(ls | grep -v -e "\."); do riscv32-unknown-elf-objcopy -O binary $$exe $${exe}.bin; done
-	@# .bin を .hex に変換
-	cd ${BUILDDIR}/isa; for exe in $$(ls | grep -v -e "\."); do od -An -tx1 -w1 -v $${exe}.bin > $${exe}.hex; done
-	@# .hex を読み込んでエミュレート。
-	@# ecall時に、a0(返り値を格納する、10番目のレジスタ)を出力し、その値が0であるかを確認する。
-	for exe in $$(ls ${BUILDDIR}/isa | grep -v -e "\."); do \
-		sed -i -e "s&[^\"]*\.hex&${BUILDDIR}/isa/$${exe}.hex&" ${VMEM};\
-		echo -n "$$exe: ";\
-		${MAKE} run -s ;\
-		[ "$$(tail -n1 ${RESULT} | rev | cut -d " " -f 1 | rev)" -eq "0" ] \
-		&& echo -e "\e[32m ok \e[m" \
-		|| echo -e "\e[31m no \e[m" ;\
-	done
+### benchmark test ###
+# benchmark 変数
+BENCHMARK_ORIGINAL_DIR := ${RISCV_TESTS}/benchmarks
+BENCHMARK_BUILD_DIR := ${BUILDDIR}/benchmark_test
+$(shell mkdir -p ${BENCHMARK_BUILD_DIR})
+BENCHMARK_DUMP := $(wildcard ${BENCHMARK_ORIGINAL_DIR}/*.dump)
+BENCHMARK_ORIGINAL_EXE := ${BENCHMARK_DUMP:${BENCHMARK_ORIGINAL_DIR}/%.dump=${BENCHMARK_ORIGINAL_DIR}/%}
+BENCHMARK_BUILD_EXE := ${BENCHMARK_ORIGINAL_EXE:${BENCHMARK_ORIGINAL_DIR}/%=${BENCHMARK_BUILD_DIR}/%}
+BENCHMARK_BIN := ${BENCHMARK_BUILD_EXE:%=%.bin}
+BENCHMARK_HEX := ${BENCHMARK_BUILD_EXE:%=%.hex}
+BENCHMARK_TESTBENCH_SRC := ${BENCHMARK_BUILD_EXE:%=%.testbench_src}
+BENCHMARK_TESTBENCH_EXE := ${BENCHMARK_BUILD_EXE:%=%.testbench_exe}
+BENCHMARK_LOG := ${BENCHMARK_BUILD_EXE:%=%.testbench_log}
+# benchmark 依存関係
+.PHONY: benchmark-test
+benchmark-test: ${BENCHMARK_LOG}
+	@echo "*** このターゲットは未完成 ***"
+	@echo -e "BENCHMARK test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/>>>/g")"
+${BENCHMARK_BUILD_EXE}: ${BENCHMARK_ORIGINAL_EXE}
+	@cp $(subst ${BENCHMARK_BUILD_DIR},${BENCHMARK_ORIGINAL_DIR},$@) $@
+
+update-riscv-tests:
+	@git submodule update --init --recursive && \
+    cd riscv-tests && \
+    autoconf && \
+    ./configure --prefix=$$RISCV/target --with-xlen=32 && \
+    cd - && \
+    $(MAKE) -C riscv-tests/benchmarks > /dev/null && \
+    $(MAKE) -C riscv-tests/isa > /dev/null
 
 .PHONY: clean
 clean:
-	rm -rf ./build
+	@rm -rf ./build
