@@ -53,7 +53,7 @@
 // ecall
 `define ECALL_N 1'b0
 `define ECALL_Y 1'b1
-// 1000000001100111
+
 /* 以下命令コード */
 // https://riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf の p.116参照
 // ロード・ストア

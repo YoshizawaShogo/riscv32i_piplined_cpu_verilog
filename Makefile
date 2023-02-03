@@ -22,7 +22,7 @@ ORIGINAL_EMULATOR ?= src/emulator/cpu_emulator.v
 	@./$< > $@
 %.testbench_exe: %.testbench_src ${VSRCS} ${VHSRCS}
 	@topmodule=$$(grep $< -e ^module | head -n1 | sed -E "s/^module (\w+).*/\1/g") && \
-    iverilog $< ${VSRCS} -I ${VSRCDIR} -s $${topmodule} -o $@
+    iverilog -g2001 $< ${VSRCS} -I ${VSRCDIR} -s $${topmodule} -o $@
 %.testbench_src: %.hex ${ORIGINAL_EMULATOR}
 	@cp ${ORIGINAL_EMULATOR} $@
 	@finish_flag=$$(sed -zE "s/.*8([0-9a-f]+) <tohost_exit>.*/\1/g" riscv-tests/benchmarks/my.riscv.dump) && \

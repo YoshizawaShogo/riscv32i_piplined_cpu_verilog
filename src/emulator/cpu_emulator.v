@@ -16,7 +16,7 @@ module cpu_tb;
 
         $display("pc = %x, inst = %x. alu_out = %d, rf[] = %d",
                 cpu.pc, cpu.inst, cpu.alu_out, cpu.reg_file.reg_file[10]);
-        if (cpu.pc === 32'h0xxxxxxx) begin
+        if (cpu.pc === 32'h0xxxxxxx) begin // xxxxxxxには文字列置換して、終了条件が入る
             $display("rf[10] = %d", cpu.reg_file.reg_file[10]);
             $finish;
         end
