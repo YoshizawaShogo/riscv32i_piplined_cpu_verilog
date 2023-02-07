@@ -1,5 +1,5 @@
 module CPU #(
-    parameter XLEN = 32,
+    parameter DATA_LEN = 32,
     parameter ADDR_LEN = 5
 ) (
     input wire clk, reset
@@ -7,57 +7,57 @@ module CPU #(
 
 // todo: 分岐予測
 
-wire [XLEN-1:0] alu_out;
-wire [XLEN-1:0] rs1_data, rs2_data;
-wire [XLEN-1:0] pc;
+wire [DATA_LEN-1:0] alu_out;
+wire [DATA_LEN-1:0] rs1_data, rs2_data;
+wire [DATA_LEN-1:0] pc;
 
 wire [1:0] rs1;
 wire [1:0] rs2;
 wire [2:0] br;
 wire ecall;
-wire [XLEN-1:0] imm;
+wire [DATA_LEN-1:0] imm;
 wire [ADDR_LEN-1:0] rs1_addr, rs2_addr, rd_addr;
 wire [4:0] alu_fn;
 wire [2:0] mem_fn;
 wire [1:0] wb_sel;
 
-wire [XLEN-1:0] inst;
-wire [XLEN-1:0] mem_out;
+wire [DATA_LEN-1:0] inst;
+wire [DATA_LEN-1:0] mem_out;
 
 // IF_ID
-reg [XLEN-1:0] if_id_pc;
-reg [XLEN-1:0] if_id_inst;
+reg [DATA_LEN-1:0] if_id_pc;
+reg [DATA_LEN-1:0] if_id_inst;
 
 // ID_EX
-reg [XLEN-1:0] id_ex_pc;
+reg [DATA_LEN-1:0] id_ex_pc;
 reg [4:0] id_ex_alu_fn;
 reg [1:0] id_ex_rs1;
-reg [XLEN-1:0] id_ex_rs1_data;
+reg [DATA_LEN-1:0] id_ex_rs1_data;
 reg [1:0] id_ex_rs2;
-reg [XLEN-1:0] id_ex_rs2_data;
+reg [DATA_LEN-1:0] id_ex_rs2_data;
 reg [ADDR_LEN-1:0] id_ex_rd_addr;
-reg [XLEN-1:0] id_ex_imm;
+reg [DATA_LEN-1:0] id_ex_imm;
 reg [2:0] id_ex_mem_fn;
 reg [1:0] id_ex_wb_sel;
 reg [2:0] id_ex_br;
 reg id_ex_ecall;
 
 // EX_MEM
-reg [XLEN-1:0] ex_mem_pc;
+reg [DATA_LEN-1:0] ex_mem_pc;
 reg ex_mem_ecall;
-reg [XLEN-1:0] ex_mem_rs2_data;
-reg [XLEN-1:0] ex_mem_alu_out;
+reg [DATA_LEN-1:0] ex_mem_rs2_data;
+reg [DATA_LEN-1:0] ex_mem_alu_out;
 reg [2:0] ex_mem_mem_fn;
 reg [1:0] ex_mem_wb_sel;
 reg [ADDR_LEN-1:0] ex_mem_rd_addr;
 
 // MEM_WB
-reg [XLEN-1:0] mem_wb_pc;
+reg [DATA_LEN-1:0] mem_wb_pc;
 reg mem_wb_ecall;
-reg [XLEN-1:0] mem_wb_rs2_data;
-reg [XLEN-1:0] mem_wb_alu_out;
+reg [DATA_LEN-1:0] mem_wb_rs2_data;
+reg [DATA_LEN-1:0] mem_wb_alu_out;
 reg [2:0] mem_wb_mem_fn; // ストールのため
-reg [XLEN-1:0] mem_wb_mem_out;
+reg [DATA_LEN-1:0] mem_wb_mem_out;
 reg [1:0] mem_wb_wb_sel;
 reg [ADDR_LEN-1:0] mem_wb_rd_addr;
 
@@ -148,12 +148,12 @@ always @(posedge clk) begin
     end
 end
 
-wire [XLEN-1:0] alu_src1;
+wire [DATA_LEN-1:0] alu_src1;
 assign alu_src1 = (id_ex_rs1 == `RS1_X)   ? 0          :
                   (id_ex_rs1 == `RS1_RS1) ? id_ex_rs1_data :
                   (id_ex_rs1 == `RS1_PC)  ? id_ex_pc       : 0;
 
-wire [XLEN-1:0] alu_src2;
+wire [DATA_LEN-1:0] alu_src2;
 assign alu_src2 = (id_ex_rs2 == `RS2_X)   ? 0          :
                   (id_ex_rs2 == `RS2_RS2) ? id_ex_rs2_data :
                   (id_ex_rs2 == `RS2_IMI) ? id_ex_imm       : 0;
@@ -167,10 +167,10 @@ assign jump_flag = (id_ex_br == `BR_BEQ) && (id_ex_rs1_data == id_ex_rs2_data) ?
                    (id_ex_br == `BR_BGEU) && (id_ex_rs1_data >= id_ex_rs2_data) ? 1 :
                    (id_ex_br == `BR_JAL) ? 1 : 0;
                
-wire [XLEN-1:0] mem_write_value;
+wire [DATA_LEN-1:0] mem_write_value;
 assign mem_write_value = (ex_mem_mem_fn) ? ex_mem_rs2_data : ex_mem_rs2_data;
 
-wire [XLEN-1:0] rf_write_value;
+wire [DATA_LEN-1:0] rf_write_value;
 assign rf_write_value = (mem_wb_wb_sel == `WB_ALU) ? mem_wb_alu_out    :
                         (mem_wb_wb_sel == `WB_MEM) ? mem_wb_mem_out    :
                         (mem_wb_wb_sel == `WB_PC)  ? mem_wb_pc + 4 : 0 ;
@@ -232,7 +232,7 @@ REG_FILE reg_file (
 );
 
 ALU #(
-    .XLEN(32),
+    .DATA_LEN(32),
     .ADDR_LEN(5)
 ) alu (
     .fn(id_ex_alu_fn), // input
