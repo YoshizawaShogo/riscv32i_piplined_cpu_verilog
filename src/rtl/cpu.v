@@ -30,6 +30,7 @@ reg [DATA_LEN-1:0] if_id_inst;
 
 // ID_EX
 reg [DATA_LEN-1:0] id_ex_pc;
+reg [DATA_LEN-1:0] id_ex_inst;
 reg [3:0] id_ex_alu_fn;
 reg [1:0] id_ex_rs1;
 reg [DATA_LEN-1:0] id_ex_rs1_data;
@@ -44,6 +45,7 @@ reg id_ex_ecall;
 
 // EX_MEM
 reg [DATA_LEN-1:0] ex_mem_pc;
+reg [DATA_LEN-1:0] ex_mem_inst;
 reg ex_mem_ecall;
 reg [DATA_LEN-1:0] ex_mem_rs2_data;
 reg [DATA_LEN-1:0] ex_mem_alu_out;
@@ -53,6 +55,7 @@ reg [ADDR_LEN-1:0] ex_mem_rd_addr;
 
 // MEM_WB
 reg [DATA_LEN-1:0] mem_wb_pc;
+reg [DATA_LEN-1:0] mem_wb_inst;
 reg mem_wb_ecall;
 reg [DATA_LEN-1:0] mem_wb_rs2_data;
 reg [DATA_LEN-1:0] mem_wb_alu_out;
@@ -60,6 +63,17 @@ reg [2:0] mem_wb_mem_fn; // ストールのため
 reg [DATA_LEN-1:0] mem_wb_mem_out;
 reg [1:0] mem_wb_wb_sel;
 reg [ADDR_LEN-1:0] mem_wb_rd_addr;
+
+// WB_reg for debug
+reg [DATA_LEN-1:0] wb_debug_pc;
+reg [DATA_LEN-1:0] wb_debug_inst;
+reg wb_debug_ecall;
+reg [DATA_LEN-1:0] wb_debug_rs2_data;
+reg [DATA_LEN-1:0] wb_debug_alu_out;
+reg [2:0] wb_debug_mem_fn;
+reg [DATA_LEN-1:0] wb_debug_mem_out;
+reg [1:0] wb_debug_wb_sel;
+reg [ADDR_LEN-1:0] wb_debug_rd_addr;
 
 // 制御
 wire stall_flag_at_id;
@@ -88,6 +102,7 @@ always @(posedge clk) begin
         id_ex_wb_sel <= 0;
     end else begin
         id_ex_pc <= if_id_pc;
+        id_ex_inst <= if_id_inst;
         id_ex_rs1 <= rs1;
         // フォワーディング
         if(rs1_addr == 0) id_ex_rs1_data <= 0;
@@ -124,6 +139,7 @@ always @(posedge clk) begin
 
     // EX_MEM
     ex_mem_pc <= id_ex_pc;
+    ex_mem_inst <= id_ex_inst;
     ex_mem_ecall <= id_ex_ecall;
     ex_mem_rs2_data <= id_ex_rs2_data;
     ex_mem_alu_out <= alu_out;
@@ -133,12 +149,25 @@ always @(posedge clk) begin
 
     // MEM_WB
     mem_wb_pc <= ex_mem_pc;
+    mem_wb_inst <= ex_mem_inst;
     mem_wb_ecall <= ex_mem_ecall;
     mem_wb_alu_out <= ex_mem_alu_out;
     mem_wb_mem_fn <= ex_mem_mem_fn;
     mem_wb_mem_out <= mem_out;
     mem_wb_wb_sel <= ex_mem_wb_sel;
     mem_wb_rd_addr <= ex_mem_rd_addr;
+
+    // WB reg for debug
+    wb_debug_pc <= mem_wb_pc;
+    wb_debug_inst <= mem_wb_inst;
+    wb_debug_ecall <= mem_wb_ecall;
+    wb_debug_rs2_data <= mem_wb_rs2_data;
+    wb_debug_alu_out <= mem_wb_alu_out;
+    wb_debug_mem_fn <= mem_wb_mem_fn;
+    wb_debug_mem_out <= mem_wb_mem_out;
+    wb_debug_wb_sel <= mem_wb_wb_sel;
+    wb_debug_rd_addr <= mem_wb_rd_addr;
+    
 
     if(mem_wb_ecall) begin
         $display("%d", reg_file.reg_file[10]);
