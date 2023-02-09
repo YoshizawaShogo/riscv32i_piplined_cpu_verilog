@@ -4,11 +4,11 @@ module DECODER (
     input wire [31:0] inst,
     output wire [31:0] imm,
     output wire [4:0] rs1_addr, rs2_addr, rd_addr,
-    output wire [4:0] alu_fn,
-    output wire [2:0] mem_fn,
-    output wire [1:0] wb_sel,
+    output wire [3:0] alu_fn,
     output wire [1:0] rs1,
     output wire [1:0] rs2,
+    output wire [2:0] mem_fn,
+    output wire [1:0] wb_sel,
     output wire [2:0] br,
     output wire ecall
 );
@@ -83,10 +83,10 @@ endfunction
 
 // 即値の扱い方 risc-v ISA manual参照(P.24)
 assign {alu_fn, rs1, rs2, mem_fn, wb_sel, br, ecall, imm_type} = parse(inst);
-assign imm = (imm_type === IMM_U) ? {inst[31:12], 12'd0} : // U-format
-             (imm_type === IMM_J) ? {{11{inst[31]}},inst[31],inst[19:12],inst[20],inst[30:21],1'd0} : // J-format
-             (imm_type === IMM_I) ? {{20{inst[31]}},inst[31],inst[30:25],inst[24:21],inst[20]} : // I-format
-             (imm_type === IMM_B) ? {{19{inst[31]}},inst[31],inst[7],inst[30:25],inst[11:8],1'd0} : //B-format
-             (imm_type === IMM_S) ? {{20{inst[31]}},inst[31],inst[30:25],inst[11:8],inst[7]} : 32'd0;// ? S-format : R-format(即値なし)
+assign imm = (imm_type == IMM_U) ? {inst[31:12], 12'd0} : // U-format
+             (imm_type == IMM_J) ? {{11{inst[31]}},inst[31],inst[19:12],inst[20],inst[30:21],1'd0} : // J-format
+             (imm_type == IMM_I) ? {{20{inst[31]}},inst[31],inst[30:25],inst[24:21],inst[20]} : // I-format
+             (imm_type == IMM_B) ? {{19{inst[31]}},inst[31],inst[7],inst[30:25],inst[11:8],1'd0} : //B-format
+             (imm_type == IMM_S) ? {{20{inst[31]}},inst[31],inst[30:25],inst[11:8],inst[7]} : 32'd0;// ? S-format : R-format(即値なし)
 
 endmodule

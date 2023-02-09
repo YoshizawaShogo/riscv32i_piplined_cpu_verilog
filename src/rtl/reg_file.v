@@ -1,5 +1,3 @@
-`include "define.vh"
-
 module REG_FILE (
     input wire clk,
     input wire reset,

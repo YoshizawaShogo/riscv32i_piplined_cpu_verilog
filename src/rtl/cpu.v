@@ -17,7 +17,7 @@ wire [2:0] br;
 wire ecall;
 wire [DATA_LEN-1:0] imm;
 wire [ADDR_LEN-1:0] rs1_addr, rs2_addr, rd_addr;
-wire [4:0] alu_fn;
+wire [3:0] alu_fn;
 wire [2:0] mem_fn;
 wire [1:0] wb_sel;
 
@@ -30,7 +30,7 @@ reg [DATA_LEN-1:0] if_id_inst;
 
 // ID_EX
 reg [DATA_LEN-1:0] id_ex_pc;
-reg [4:0] id_ex_alu_fn;
+reg [3:0] id_ex_alu_fn;
 reg [1:0] id_ex_rs1;
 reg [DATA_LEN-1:0] id_ex_rs1_data;
 reg [1:0] id_ex_rs2;
@@ -61,6 +61,13 @@ reg [DATA_LEN-1:0] mem_wb_mem_out;
 reg [1:0] mem_wb_wb_sel;
 reg [ADDR_LEN-1:0] mem_wb_rd_addr;
 
+// 制御
+wire stall_flag_at_id;
+assign stall_flag_at_id = ((id_ex_wb_sel == `WB_MEM) && (id_ex_rd_addr  == rs1_addr || id_ex_rd_addr  == rs2_addr)) ? 1 : 0;
+
+wire stall_flag_at_if;
+assign stall_flag_at_if = (id_ex_br == `BR_X) && (br == `BR_X)  ? 0 : 1;
+
 always @(posedge clk) begin
 
     // IF_ID
@@ -76,16 +83,7 @@ always @(posedge clk) begin
 
     // ID_EX
     if (stall_flag_at_id) begin
-        id_ex_pc <= 0;
-        id_ex_rs1 <= 0;
-        id_ex_rs1_data <= 0;
-        id_ex_rs2 <= 0;
-        id_ex_rs2_data <= 0;
-        id_ex_rd_addr <= 0;
         id_ex_br <= 0;
-        id_ex_ecall <= 0;
-        id_ex_alu_fn <= 0;
-        id_ex_imm <= 0;
         id_ex_mem_fn <= 0;
         id_ex_wb_sel <= 0;
     end else begin
@@ -175,25 +173,7 @@ assign rf_write_value = (mem_wb_wb_sel == `WB_ALU) ? mem_wb_alu_out    :
                         (mem_wb_wb_sel == `WB_MEM) ? mem_wb_mem_out    :
                         (mem_wb_wb_sel == `WB_PC)  ? mem_wb_pc + 4 : 0 ;
 
-// 制御
-wire stall_flag_at_id;
-assign stall_flag_at_id = ((id_ex_wb_sel == `WB_MEM) && (id_ex_rd_addr  == rs1_addr || id_ex_rd_addr  == rs2_addr)) ? 1 : 0;
 
-wire stall_flag_at_if;
-assign stall_flag_at_if = (id_ex_br == `BR_BEQ)  || 
-                          (id_ex_br == `BR_BNE)  || 
-                          (id_ex_br == `BR_BLT)  || 
-                          (id_ex_br == `BR_BGE)  || 
-                          (id_ex_br == `BR_BLTU) ||
-                          (id_ex_br == `BR_BGEU) || 
-                          (id_ex_br == `BR_JAL)  ||
-                          (br == `BR_BEQ)  || 
-                          (br == `BR_BNE)  || 
-                          (br == `BR_BLT)  || 
-                          (br == `BR_BGE)  ||
-                          (br == `BR_BLTU) ||
-                          (br == `BR_BGEU) || 
-                          (br == `BR_JAL)  ? 1 : 0;
 
 PC pc_mod (
     .clk(clk), // input
@@ -222,7 +202,7 @@ DECODER decoder (
 REG_FILE reg_file (
     .clk(clk), // input
     .reset(reset), // input
-    .write_en(mem_wb_wb_sel == `WB_PC || mem_wb_wb_sel == `WB_ALU || mem_wb_wb_sel == `WB_MEM), // input
+    .write_en(mem_wb_wb_sel != `WB_X), // input
     .write_addr(mem_wb_rd_addr), // input
     .write_value(rf_write_value), // input
     .rs1_addr(rs1_addr), // input

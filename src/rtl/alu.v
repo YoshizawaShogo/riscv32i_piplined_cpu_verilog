@@ -4,7 +4,7 @@ module ALU #(
     parameter DATA_LEN = 32,
     parameter ADDR_LEN = 5
 ) (
-    input wire [4:0] fn,
+    input wire [3:0] fn,
     input wire [DATA_LEN-1:0] src1,
     input wire [DATA_LEN-1:0] src2,
     output wire [DATA_LEN-1:0] out
