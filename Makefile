@@ -25,8 +25,9 @@ ORIGINAL_EMULATOR ?= src/emulator/cpu_emulator.v
     iverilog -g2001 $< ${VSRCS} -I ${VSRCDIR} -s $${topmodule} -o $@
 %.testbench_src: %.hex ${ORIGINAL_EMULATOR}
 	@cp ${ORIGINAL_EMULATOR} $@
-	@finish_flag=$$(sed -zE "s/.*8([0-9a-f]+) <tohost_exit>.*/\1/g" riscv-tests/benchmarks/my.riscv.dump) && \
-    sed -i -e "s&[^\"]*\.hex&$<&" -e "s&xxxxxxx&$${finish_flag}&" $@
+	@file_path=$(subst testbench_src,dump,$(subst ${BENCHMARK_BUILD_DIR},${BENCHMARK_ORIGINAL_DIR},$@)) && \
+	finish_flag=$$(sed -zE "s/.*8([0-9a-f]+) <tohost_exit>.*/\1/g" $$file_path 2> /dev/null) &&\
+    sed -i -e "s&[^\"]*\.hex&$<&" -e "s&xxxxxxx&$${finish_flag}&" $@; echo -n
 %.hex: %.bin
 	@od -An -tx1 -w1 -v $< > $@
 %.bin: %

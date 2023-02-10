@@ -45,7 +45,7 @@ module cpu_tb;
         #HALFCYCLE clk = ~clk;
 
         $display("pc = %x, inst = %x. alu_out = %d, rf[] = %d",
-                cpu.pc, cpu.inst, cpu.wb_debug_alu_out, cpu.reg_file.reg_file[10]);
+                cpu.wb_debug_pc, cpu.wb_debug_inst, cpu.wb_debug_alu_out, cpu.reg_file.reg_file[10]);
         if (cpu.pc === 32'h0xxxxxxx) begin // xxxxxxxには文字列置換して、終了条件が入る
             $display("rf[10] = %d", cpu.reg_file.reg_file[10]);
             $finish;
@@ -57,7 +57,7 @@ module cpu_tb;
         reset = 1; #CYCLE reset = 0;
     end
 
-    initial #(100000 * CYCLE + HALFCYCLE) begin
+    initial #(1000000 * CYCLE + HALFCYCLE) begin
         $display("Timeout_Error");
         $finish;
     end
@@ -82,7 +82,7 @@ module MEM (
     end
 
     always @(posedge clk) begin
-        // 書き込んでいないメモリにアクセスすることは想定しない。
+        // 書き込んでいないメモリにアクセスすることは想定しないため、reset無し
         if (mem_fn === `MEM_SW) begin
             mem[addr+3] <= write_data[31:24];
             mem[addr+2] <= write_data[23:16];
