@@ -1,6 +1,8 @@
 `include "define.vh"
 
-module DECODER (
+module DECODER #(
+    parameter INST_LEN = 32
+) (
     input wire [31:0] inst,
     output wire [31:0] imm,
     output wire [4:0] rs1_addr, rs2_addr, rd_addr,

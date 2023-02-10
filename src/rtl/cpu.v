@@ -1,5 +1,6 @@
 module CPU #(
     parameter DATA_LEN = 32,
+    parameter INST_LEN = 32,
     parameter ADDR_LEN = 5
 ) (
     input wire clk, reset
@@ -21,16 +22,16 @@ wire [3:0] alu_fn;
 wire [2:0] mem_fn;
 wire [1:0] wb_sel;
 
-wire [DATA_LEN-1:0] inst;
+wire [INST_LEN-1:0] inst;
 wire [DATA_LEN-1:0] mem_out;
 
 // IF_ID
 reg [DATA_LEN-1:0] if_id_pc;
-reg [DATA_LEN-1:0] if_id_inst;
+reg [INST_LEN-1:0] if_id_inst;
 
 // ID_EX
 reg [DATA_LEN-1:0] id_ex_pc;
-reg [DATA_LEN-1:0] id_ex_inst;
+reg [INST_LEN-1:0] id_ex_inst;
 reg [3:0] id_ex_alu_fn;
 reg [1:0] id_ex_rs1;
 reg [DATA_LEN-1:0] id_ex_rs1_data;
@@ -45,7 +46,7 @@ reg id_ex_ecall;
 
 // EX_MEM
 reg [DATA_LEN-1:0] ex_mem_pc;
-reg [DATA_LEN-1:0] ex_mem_inst;
+reg [INST_LEN-1:0] ex_mem_inst;
 reg ex_mem_ecall;
 reg [DATA_LEN-1:0] ex_mem_rs2_data;
 reg [DATA_LEN-1:0] ex_mem_alu_out;
@@ -55,7 +56,7 @@ reg [ADDR_LEN-1:0] ex_mem_rd_addr;
 
 // MEM_WB
 reg [DATA_LEN-1:0] mem_wb_pc;
-reg [DATA_LEN-1:0] mem_wb_inst;
+reg [INST_LEN-1:0] mem_wb_inst;
 reg mem_wb_ecall;
 reg [DATA_LEN-1:0] mem_wb_rs2_data;
 reg [DATA_LEN-1:0] mem_wb_alu_out;
@@ -65,8 +66,9 @@ reg [1:0] mem_wb_wb_sel;
 reg [ADDR_LEN-1:0] mem_wb_rd_addr;
 
 // WB_reg for debug
+// Design Compilerでは、最適化により取り除かれるため、面積に影響なし
 reg [DATA_LEN-1:0] wb_debug_pc;
-reg [DATA_LEN-1:0] wb_debug_inst;
+reg [INST_LEN-1:0] wb_debug_inst;
 reg wb_debug_ecall;
 reg [DATA_LEN-1:0] wb_debug_rs2_data;
 reg [DATA_LEN-1:0] wb_debug_alu_out;
