@@ -6,16 +6,46 @@
 module cpu_tb;
     parameter HALFCYCLE = 0.5; //500ns
     parameter CYCLE = 1;
-    reg clk, reset;
+    parameter DATA_LEN = 32;
+    parameter INST_LEN = 32;
+    parameter ADDR_LEN = 5;
+    
+    reg clk;
+    reg reset;
+    wire [DATA_LEN-1:0] pc;
+    wire [2:0] ex_mem_mem_fn;
+    wire [DATA_LEN-1:0] ex_mem_alu_out;
+    wire [DATA_LEN-1:0] ex_mem_rs2_data;
+    wire [INST_LEN-1:0] inst;
+    wire [DATA_LEN-1:0] mem_out;
 
-    CPU cpu(.clk(clk), .reset(reset));
+    CPU cpu(
+        .clk(clk),
+        .reset(reset),
+        .pc(pc),
+        .ex_mem_mem_fn(ex_mem_mem_fn),
+        .ex_mem_alu_out(ex_mem_alu_out),
+        .ex_mem_rs2_data(ex_mem_rs2_data),
+        .inst(inst),
+        .mem_out(mem_out)
+    );
+
+    MEM mem (
+        .clk(clk), // input
+        .pc(pc), // input
+        .mem_fn(ex_mem_mem_fn), // input
+        .addr(ex_mem_alu_out), // input
+        .write_data(ex_mem_rs2_data), // input
+        .inst(inst), // output
+        .read_data(mem_out) // output
+    );
 
     always begin 
         #HALFCYCLE clk = ~clk;
         #HALFCYCLE clk = ~clk;
 
         $display("pc = %x, inst = %x. alu_out = %d, rf[] = %d",
-                cpu.wb_debug_pc, cpu.wb_debug_inst, cpu.wb_debug_alu_out, cpu.reg_file.reg_file[10]);
+                cpu.pc, cpu.inst, cpu.wb_debug_alu_out, cpu.reg_file.reg_file[10]);
         if (cpu.pc === 32'h0xxxxxxx) begin // xxxxxxxには文字列置換して、終了条件が入る
             $display("rf[10] = %d", cpu.reg_file.reg_file[10]);
             $finish;

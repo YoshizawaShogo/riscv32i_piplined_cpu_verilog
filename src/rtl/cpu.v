@@ -3,14 +3,20 @@ module CPU #(
     parameter INST_LEN = 32,
     parameter ADDR_LEN = 5
 ) (
-    input wire clk, reset
+    input wire clk, reset,
+    output wire [DATA_LEN-1:0] pc,
+    output reg [2:0] ex_mem_mem_fn,
+    output reg [DATA_LEN-1:0] ex_mem_alu_out,
+    output reg [DATA_LEN-1:0] ex_mem_rs2_data,
+    output wire [INST_LEN-1:0] inst,
+    output wire [DATA_LEN-1:0] mem_out
 );
 
 // todo: 分岐予測
 
 wire [DATA_LEN-1:0] alu_out;
 wire [DATA_LEN-1:0] rs1_data, rs2_data;
-wire [DATA_LEN-1:0] pc;
+// wire [DATA_LEN-1:0] pc;
 
 wire [1:0] rs1;
 wire [1:0] rs2;
@@ -22,8 +28,8 @@ wire [3:0] alu_fn;
 wire [2:0] mem_fn;
 wire [1:0] wb_sel;
 
-wire [INST_LEN-1:0] inst;
-wire [DATA_LEN-1:0] mem_out;
+// wire [INST_LEN-1:0] inst;
+// wire [DATA_LEN-1:0] mem_out;
 
 // IF_ID
 reg [DATA_LEN-1:0] if_id_pc;
@@ -48,9 +54,9 @@ reg id_ex_ecall;
 reg [DATA_LEN-1:0] ex_mem_pc;
 reg [INST_LEN-1:0] ex_mem_inst;
 reg ex_mem_ecall;
-reg [DATA_LEN-1:0] ex_mem_rs2_data;
-reg [DATA_LEN-1:0] ex_mem_alu_out;
-reg [2:0] ex_mem_mem_fn;
+// reg [DATA_LEN-1:0] ex_mem_rs2_data;
+// reg [DATA_LEN-1:0] ex_mem_alu_out;
+// reg [2:0] ex_mem_mem_fn;
 reg [1:0] ex_mem_wb_sel;
 reg [ADDR_LEN-1:0] ex_mem_rd_addr;
 
@@ -252,16 +258,6 @@ ALU #(
     .src1(alu_src1), // input
     .src2(alu_src2), // input
     .out(alu_out) // output
-);
-
-MEM mem (
-    .clk(clk), // input
-    .pc(pc), // input
-    .mem_fn(ex_mem_mem_fn), // input
-    .addr(ex_mem_alu_out), // input
-    .write_data(ex_mem_rs2_data), // input
-    .inst(inst), // output
-    .read_data(mem_out) // output
 );
     
 endmodule
