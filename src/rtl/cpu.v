@@ -99,9 +99,9 @@ always @(posedge clk) begin
 
     // ID_EX
     if (stall_flag_at_id) begin
-        id_ex_br <= 0;
-        id_ex_mem_fn <= 0;
-        id_ex_wb_sel <= 0;
+        id_ex_br <= `BR_X;
+        id_ex_mem_fn <= `MEM_LB;
+        id_ex_wb_sel <= `WB_X;
     end else begin
         id_ex_pc <= if_id_pc;
         id_ex_inst <= if_id_inst;
@@ -215,7 +215,9 @@ PC pc_mod (
     .pc(pc) // output
 );
 
-DECODER decoder (
+DECODER #(
+    .INST_LEN(INST_LEN)
+) decoder (
     .inst(if_id_inst), // input
     .imm(imm), // output
     .rs1_addr(rs1_addr), // output
@@ -243,8 +245,8 @@ REG_FILE reg_file (
 );
 
 ALU #(
-    .DATA_LEN(32),
-    .ADDR_LEN(5)
+    .DATA_LEN(DATA_LEN),
+    .ADDR_LEN(ADDR_LEN)
 ) alu (
     .fn(id_ex_alu_fn), // input
     .src1(alu_src1), // input
