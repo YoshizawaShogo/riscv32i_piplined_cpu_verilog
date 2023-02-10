@@ -47,7 +47,7 @@ module ALU #(
     wire [DATA_LEN-1:0] jalr_out;
     assign jalr_out = (src1 + src2) & ~1;
 
-    assign out = (fn == `ALU_X) ? 0 :
+    assign out = (fn == `ALU_X) ? 0 : // 0 は適当
                  (fn == `ALU_ADD) ? add_out :
                  (fn == `ALU_SUB) ? sub_out :
                  (fn == `ALU_AND) ? and_out :
@@ -59,6 +59,6 @@ module ALU #(
                  (fn == `ALU_SLT) ? slt_out :
                  (fn == `ALU_SLTU) ? sltu_out :
                  (fn == `ALU_JALR) ? jalr_out :
-                 1;
+                 1; // 1 は適当
 
 endmodule
