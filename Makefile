@@ -1,7 +1,7 @@
 .PHONY: defaultrtl
 default: nothing
 nothing:
-	@echo "Choose any target."
+	echo "Choose any target."
 all: unit-test isa-test benchmark-test
 
 SHELL := /bin/bash
@@ -19,19 +19,19 @@ ORIGINAL_EMULATOR ?= src/emulator/cpu_emulator.v
 # common 依存関係
 .PRECIOUS: %.testbench_log %.testbench_src %.testbench_exe %.hex %.bin
 %.testbench_log: %.testbench_exe
-	@./$< > $@
+	./$< > $@
 %.testbench_exe: %.testbench_src ${VSRCS} ${VHSRCS}
-	@topmodule=$$(grep $< -e ^module | head -n1 | sed -E "s/^module (\w+).*/\1/g") && \
+	topmodule=$$(grep $< -e ^module | head -n1 | sed -E "s/^module (\w+).*/\1/g") && \
     iverilog -g2001 $< ${VSRCS} -I ${VSRCDIR} -s $${topmodule} -o $@
 %.testbench_src: %.hex ${ORIGINAL_EMULATOR}
-	@cp ${ORIGINAL_EMULATOR} $@
-	@file_path=$(subst testbench_src,dump,$(subst ${BENCHMARK_BUILD_DIR},${BENCHMARK_ORIGINAL_DIR},$@)) && \
+	cp ${ORIGINAL_EMULATOR} $@
+	file_path=$(subst testbench_src,dump,$(subst ${BENCHMARK_BUILD_DIR},${BENCHMARK_ORIGINAL_DIR},$@)) && \
 	finish_flag=$$(sed -zE "s/.*8([0-9a-f]+) <tohost_exit>.*/\1/g" $$file_path 2> /dev/null) &&\
     sed -i -e "s&[^\"]*\.hex&$<&" -e "s&xxxxxxx&$${finish_flag}&" $@; echo -n
 %.hex: %.bin
-	@od -An -tx1 -w1 -v $< > $@
+	od -An -tx1 -w1 -v $< > $@
 %.bin: %
-	@riscv32-unknown-elf-objcopy -O binary $< $@
+	riscv32-unknown-elf-objcopy -O binary $< $@
 
 ### unit test ###
 # unit 変数
@@ -45,9 +45,9 @@ UNIT_LOG := ${UNIT_TESTBENCH_BUILD_SRC:%.testbench_src=%.testbench_log}
 # 依存関係
 .PHONY: unit-test
 unit-test: ${UNIT_LOG}
-	@echo -e "Unit test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
+	echo -e "Unit test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
 ${UNIT_BUILD_DIR}/%.testbench_src: ${UNIT_SRC_DIR}/%.testbench_src
-	@cp $< $@
+	cp $< $@
 
 ### isa test ###
 # isa 変数
@@ -65,9 +65,9 @@ ISA_LOG := ${ISA_BUILD_EXE:%=%.testbench_log}
 # isa 依存関係
 .PHONY: isa-test
 isa-test: ${ISA_LOG}
-	@echo -e "ISA test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
+	echo -e "ISA test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
 ${ISA_BUILD_EXE}: ${ISA_ORIGINAL_EXE}
-	@cp $(subst ${ISA_BUILD_DIR},${ISA_ORIGINAL_DIR},$@) $@
+	cp $(subst ${ISA_BUILD_DIR},${ISA_ORIGINAL_DIR},$@) $@
 
 ### benchmark test ###
 # benchmark 変数
@@ -85,13 +85,13 @@ BENCHMARK_LOG := ${BENCHMARK_BUILD_EXE:%=%.testbench_log}
 # benchmark 依存関係
 .PHONY: benchmark-test
 benchmark-test: ${BENCHMARK_LOG}
-	@echo "*** このターゲットは未完成 ***"
-	@echo -e "BENCHMARK test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/>>>/g")"
+	echo "*** このターゲットは未完成 ***"
+	echo -e "BENCHMARK test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/>>>/g")"
 ${BENCHMARK_BUILD_EXE}: ${BENCHMARK_ORIGINAL_EXE}
-	@cp $(subst ${BENCHMARK_BUILD_DIR},${BENCHMARK_ORIGINAL_DIR},$@) $@
+	cp $(subst ${BENCHMARK_BUILD_DIR},${BENCHMARK_ORIGINAL_DIR},$@) $@
 
 update-riscv-tests:
-	@git submodule update --init --recursive && \
+	git submodule update --init --recursive && \
     cd riscv-tests && \
     autoconf && \
     ./configure --prefix=$$RISCV/target --with-xlen=32 && \
@@ -101,4 +101,4 @@ update-riscv-tests:
 
 .PHONY: clean
 clean:
-	@rm -rf ./build
+	rm -rf ./build
