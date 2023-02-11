@@ -8,8 +8,8 @@ module CPU #(
     output reg [2:0] ex_mem_mem_fn,
     output reg [DATA_LEN-1:0] ex_mem_alu_out,
     output reg [DATA_LEN-1:0] ex_mem_rs2_data,
-    output wire [INST_LEN-1:0] inst,
-    output wire [DATA_LEN-1:0] mem_out
+    input wire [INST_LEN-1:0] inst,
+    input wire [DATA_LEN-1:0] mem_out
 );
 
 // todo: 分岐予測
