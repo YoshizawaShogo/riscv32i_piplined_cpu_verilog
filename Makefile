@@ -1,7 +1,7 @@
 .PHONY: defaultrtl
 default: nothing
 nothing:
-	echo "Choose any target."
+	@echo "Choose any target."
 all: unit-test isa-test benchmark-test
 
 SHELL := /bin/bash
@@ -45,7 +45,7 @@ UNIT_LOG := ${UNIT_TESTBENCH_BUILD_SRC:%.testbench_src=%.testbench_log}
 # 依存関係
 .PHONY: unit-test
 unit-test: ${UNIT_LOG}
-	echo -e "Unit test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
+	@echo -e "Unit test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
 ${UNIT_BUILD_DIR}/%.testbench_src: ${UNIT_SRC_DIR}/%.testbench_src
 	cp $< $@
 
@@ -65,7 +65,7 @@ ISA_LOG := ${ISA_BUILD_EXE:%=%.testbench_log}
 # isa 依存関係
 .PHONY: isa-test
 isa-test: ${ISA_LOG}
-	echo -e "ISA test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
+	@echo -e "ISA test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
 ${ISA_BUILD_EXE}: ${ISA_ORIGINAL_EXE}
 	cp $(subst ${ISA_BUILD_DIR},${ISA_ORIGINAL_DIR},$@) $@
 
@@ -85,8 +85,8 @@ BENCHMARK_LOG := ${BENCHMARK_BUILD_EXE:%=%.testbench_log}
 # benchmark 依存関係
 .PHONY: benchmark-test
 benchmark-test: ${BENCHMARK_LOG}
-	echo "*** このターゲットは未完成 ***"
-	echo -e "BENCHMARK test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/>>>/g")"
+	@echo "*** このターゲットは未完成 ***"
+	@echo -e "BENCHMARK test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/>>>/g")"
 ${BENCHMARK_BUILD_EXE}: ${BENCHMARK_ORIGINAL_EXE}
 	cp $(subst ${BENCHMARK_BUILD_DIR},${BENCHMARK_ORIGINAL_DIR},$@) $@
 
