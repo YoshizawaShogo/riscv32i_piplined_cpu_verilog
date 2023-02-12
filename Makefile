@@ -17,7 +17,7 @@ VSRCS := $(wildcard ${VSRCDIR}/*.v)
 VHSRCS := $(wildcard ${VSRCDIR}/*.vh)
 ORIGINAL_EMULATOR ?= src/emulator/cpu_emulator.v
 # common 依存関係
-.PRECIOUS: %.testbench_log %.testbench_src %.testbench_exe %.hex %.bin %.dump
+.PRECIOUS: %.testbench_log %.testbench_src %.hex %.dump
 %.testbench_log: %.testbench_exe
 	./$< > $@
 %.testbench_exe: %.testbench_src ${VSRCS} ${VHSRCS}
