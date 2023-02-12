@@ -46,8 +46,12 @@ module cpu_tb;
 
         $display("pc = %x, inst = %x. alu_out = %d, rf[] = %d",
                 cpu.wb_debug_pc, cpu.wb_debug_inst, cpu.wb_debug_alu_out, cpu.reg_file.reg_file[10]);
-        if (cpu.pc === 32'h0xxxxxxx) begin // xxxxxxxには文字列置換して、終了条件が入る
-            $display("rf[10] = %d", cpu.reg_file.reg_file[10]);
+        if(cpu.mem_wb_ecall) begin
+            $display("ECALL: %d", cpu.reg_file.reg_file[10]);
+            $finish;
+        end
+        if (cpu.wb_debug_pc === 32'h0xxxxxxx) begin // xxxxxxxには文字列置換して、終了条件が入る
+            $display("end_flag: rf[10] = %d", cpu.reg_file.reg_file[10]);
             $finish;
         end
     end
@@ -57,7 +61,7 @@ module cpu_tb;
         reset = 1; #CYCLE reset = 0;
     end
 
-    initial #(1000000 * CYCLE + HALFCYCLE) begin
+    initial #(10000 * CYCLE + HALFCYCLE) begin
         $display("Timeout_Error");
         $finish;
     end

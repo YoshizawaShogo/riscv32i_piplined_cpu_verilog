@@ -176,11 +176,6 @@ always @(posedge clk) begin
     wb_debug_wb_sel <= mem_wb_wb_sel;
     wb_debug_rd_addr <= mem_wb_rd_addr;
     
-
-    if(mem_wb_ecall) begin
-        $display("%d", reg_file.reg_file[10]);
-        $finish;
-    end
 end
 
 wire [DATA_LEN-1:0] alu_src1;
