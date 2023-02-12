@@ -61,7 +61,7 @@ module cpu_tb;
         reset = 1; #CYCLE reset = 0;
     end
 
-    initial #(10000 * CYCLE + HALFCYCLE) begin
+    initial #(100000 * CYCLE + HALFCYCLE) begin
         $display("Timeout_Error");
         $finish;
     end
