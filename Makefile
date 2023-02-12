@@ -24,13 +24,19 @@ ORIGINAL_EMULATOR ?= src/emulator/cpu_emulator.v
 	topmodule=$$(grep $< -e ^module | head -n1 | sed -E "s/^module (\w+).*/\1/g") && \
     iverilog -g2001 $< ${VSRCS} -I ${VSRCDIR} -s $${topmodule} -o $@
 %.testbench_src: %.hex %.dump ${ORIGINAL_EMULATOR}
+	@# エミュレータのベースをコピー
 	cp ${ORIGINAL_EMULATOR} $@
+	@# for isa test
+	@# for benchmark test
+	@# for my test
 	sed -i -e "s&[^\"]*\.hex&$<&" $@ && \
 	file_path=$(subst testbench_src,dump,$(subst ${BENCHMARK_BUILD_DIR},${BENCHMARK_ORIGINAL_DIR},$@)) && \
+	grep "<tohost_exit>" $$file_path > /dev/null && \
     finish_flag=$$(sed -zE "s/.*8([0-9a-f]+) <tohost_exit>.*/\1/g" $$file_path 2> /dev/null) && \
-    sed -i -e "s&xxxxxxx&$${finish_flag}&" $@ ; \
+    sed -i -e "s/xxxxxxx/$${finish_flag}/" $@ ; \
+	grep main $(filter %.dump,$^) > /dev/null && \
 	finish_flag=$$(cat $(filter %.dump,$^) | sed -z -e "s/.*<main>//" -e "s/ret.*//" -e "" | tail -n1 | sed -E "s/(\s*[0-9a-f]*):.*/\1/") && \
-	sed -i -e "s&xxxxxxx&$$(echo $${finish_flag})&" $@ ; true
+	sed -i -e "s/xxxxxxx/$$(echo $${finish_flag})/" $@ ; true
 %.hex: %.bin
 	od -An -tx1 -w1 -v $< > $@
 %.bin: %
