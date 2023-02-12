@@ -80,7 +80,7 @@ BENCHMARK_LOG := ${BENCHMARK_BUILD_EXE:%=%.testbench_log}
 .PHONY: benchmark-test
 benchmark-test: ${BENCHMARK_LOG}
 	@echo "*** このターゲットは未完成 ***"
-	@echo -e "BENCHMARK test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/>>>/g")"
+	@echo -e "BENCHMARK test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
 ${BENCHMARK_BUILD_EXE}: ${BENCHMARK_BUILD_DIR}/%: ${BENCHMARK_ORIGINAL_DIR}/%
 	cp $< $@
 
