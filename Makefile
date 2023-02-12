@@ -1,8 +1,8 @@
-.PHONY: defaultrtl
+.PHONY: default nothing
 default: nothing
 nothing:
 	@echo "Choose any target."
-all: unit-test isa-test benchmark-test
+all: unit-test isa-test benchmark-test my-c-test
 
 SHELL := /bin/bash
 BUILDDIR ?= build
@@ -31,7 +31,6 @@ ORIGINAL_EMULATOR ?= src/emulator/cpu_emulator.v
     sed -i -e "s&xxxxxxx&$${finish_flag}&" $@ ; \
 	finish_flag=$$(cat $(filter %.dump,$^) | sed -z -e "s/.*<main>//" -e "s/ret.*//" -e "" | tail -n1 | sed -E "s/(\s*[0-9a-f]*):.*/\1/") && \
 	sed -i -e "s&xxxxxxx&$$(echo $${finish_flag})&" $@ ; true
-
 %.hex: %.bin
 	od -An -tx1 -w1 -v $< > $@
 %.bin: %
@@ -79,8 +78,7 @@ BENCHMARK_LOG := ${BENCHMARK_BUILD_EXE:%=%.testbench_log}
 # benchmark 依存関係
 .PHONY: benchmark-test
 benchmark-test: ${BENCHMARK_LOG}
-	@echo "*** このターゲットは未完成 ***"
-	@echo -e "BENCHMARK test: $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
+	@echo -e "Benchmark test: *** このターゲットは未完成 *** $(shell tail -n1 $^ | sed -e "s/==>/\\\\n/g" -e "s/<==/==>/g")"
 ${BENCHMARK_BUILD_EXE}: ${BENCHMARK_BUILD_DIR}/%: ${BENCHMARK_ORIGINAL_DIR}/%
 	cp $< $@
 
