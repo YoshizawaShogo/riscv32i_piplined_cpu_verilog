@@ -8,11 +8,13 @@ module CPU #(
     output reg [2:0] ex_mem_mem_fn,
     output reg [DATA_LEN-1:0] ex_mem_alu_out,
     output reg [DATA_LEN-1:0] ex_mem_rs2_data,
+    output wire [3:0] led,
     input wire [INST_LEN-1:0] inst,
     input wire [DATA_LEN-1:0] mem_out
 );
 
 // todo: 分岐予測
+wire local_clk;
 
 wire [DATA_LEN-1:0] alu_out;
 wire [DATA_LEN-1:0] rs1_data, rs2_data;
@@ -64,6 +66,8 @@ reg [ADDR_LEN-1:0] ex_mem_rd_addr;
 reg [DATA_LEN-1:0] mem_wb_pc;
 reg [INST_LEN-1:0] mem_wb_inst;
 reg mem_wb_ecall;
+assign local_clk = (mem_wb_ecall != 1) ? clk : 1;
+
 reg [DATA_LEN-1:0] mem_wb_rs2_data;
 reg [DATA_LEN-1:0] mem_wb_alu_out;
 reg [2:0] mem_wb_mem_fn; // ストールのため
@@ -90,7 +94,7 @@ assign stall_flag_at_id = ((id_ex_wb_sel == `WB_MEM) && (id_ex_rd_addr  == rs1_a
 wire stall_flag_at_if;
 assign stall_flag_at_if = (id_ex_br == `BR_X) && (br == `BR_X)  ? 0 : 1;
 
-always @(posedge clk) begin
+always @(posedge local_clk) begin
 
     // IF_ID
     if (stall_flag_at_if && !stall_flag_at_id) begin
@@ -208,7 +212,7 @@ assign rf_write_value = (mem_wb_wb_sel == `WB_ALU) ? mem_wb_alu_out    :
 
 
 PC pc_mod (
-    .clk(clk), // input
+    .clk(local_clk), // input
     .reset(reset), // input
     .stall(stall_flag_at_if || stall_flag_at_id), // input
     .jump_flag(jump_flag), // input
@@ -234,7 +238,7 @@ DECODER #(
 );
 
 REG_FILE reg_file (
-    .clk(clk), // input
+    .clk(local_clk), // input
     .reset(reset), // input
     .write_en(mem_wb_wb_sel != `WB_X), // input
     .write_addr(mem_wb_rd_addr), // input
@@ -242,6 +246,7 @@ REG_FILE reg_file (
     .rs1_addr(rs1_addr), // input
     .rs2_addr(rs2_addr), // input
     .rs1_data(rs1_data), // output
+    .reg10(led),
     .rs2_data(rs2_data) // output
 );
 

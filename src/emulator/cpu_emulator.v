@@ -19,7 +19,9 @@ module cpu_tb;
     wire [INST_LEN-1:0] inst;
     wire [DATA_LEN-1:0] mem_out;
 
-    CPU cpu(
+    CPU #(
+        .INST_LEN(INST_LEN)
+    ) cpu (
         .clk(clk),
         .reset(reset),
         .pc(pc),

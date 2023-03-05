@@ -1,10 +1,11 @@
 `include "define.vh"
 
 module DECODER #(
-    parameter INST_LEN = 32
+    parameter INST_LEN = 32,
+    parameter DATA_LEN = 32
 ) (
-    input wire [31:0] inst,
-    output wire [31:0] imm,
+    input wire [INST_LEN-1:0] inst,
+    output wire [DATA_LEN-1:0] imm,
     output wire [4:0] rs1_addr, rs2_addr, rd_addr,
     output wire [3:0] alu_fn,
     output wire [1:0] rs1,
@@ -24,13 +25,13 @@ localparam IMM_U = 3'd4;
 localparam IMM_J = 3'd5;
 wire [2:0] imm_type;
 
-assign rs1_addr = inst[19:15];
-assign rs2_addr = inst[24:20];
-assign rd_addr = inst[11:7];
+assign rs1_addr = inst[INST_LEN-13:INST_LEN-17];
+assign rs2_addr = inst[INST_LEN-8:INST_LEN-12];
+assign rd_addr = inst[INST_LEN-21:INST_LEN-25];
 
 
 function [19:0] parse;
-    input [31:0] inst;
+    input [INST_LEN-1:0] inst;
     casex (inst) //    ALU_fn,    ALU_src1, ALU_src2, MEM_fn,  WB_select, branch, ecall, imm
     `LUI    : parse = {`ALU_ADD,  `RS1_X,   `RS2_IMI, `MEM_LB,  `WB_ALU, `BR_X   , `ECALL_N, IMM_U };
     `AUIPC  : parse = {`ALU_ADD,  `RS1_PC,  `RS2_IMI, `MEM_LB,  `WB_ALU, `BR_X   , `ECALL_N, IMM_U };
@@ -85,10 +86,10 @@ endfunction
 
 // 即値の扱い方 risc-v ISA manual参照(P.24)
 assign {alu_fn, rs1, rs2, mem_fn, wb_sel, br, ecall, imm_type} = parse(inst);
-assign imm = (imm_type == IMM_U) ? {inst[31:12], 12'd0} : // U-format
-             (imm_type == IMM_J) ? {{11{inst[31]}},inst[31],inst[19:12],inst[20],inst[30:21],1'd0} : // J-format
-             (imm_type == IMM_I) ? {{20{inst[31]}},inst[31],inst[30:25],inst[24:21],inst[20]} : // I-format
-             (imm_type == IMM_B) ? {{19{inst[31]}},inst[31],inst[7],inst[30:25],inst[11:8],1'd0} : //B-format
-             (imm_type == IMM_S) ? {{20{inst[31]}},inst[31],inst[30:25],inst[11:8],inst[7]} : 32'd0;// ? S-format : R-format(即値なし)
+assign imm = (imm_type == IMM_U) ? {inst[INST_LEN-1:INST_LEN-20], {12{1'd0}}} : // U-format
+             (imm_type == IMM_J) ? {{11{inst[INST_LEN-1]}},inst[INST_LEN-1],inst[INST_LEN-13:INST_LEN-20],inst[INST_LEN-12],inst[INST_LEN-2:INST_LEN-11],1'd0} : // J-format
+             (imm_type == IMM_I) ? {{20{inst[INST_LEN-1]}},inst[INST_LEN-1],inst[INST_LEN-2:INST_LEN-7],inst[INST_LEN-8:INST_LEN-11],inst[INST_LEN-12]} : // I-format
+             (imm_type == IMM_B) ? {{19{inst[INST_LEN-1]}},inst[INST_LEN-1],inst[INST_LEN-25],inst[INST_LEN-2:INST_LEN-7],inst[INST_LEN-21:INST_LEN-24],1'd0} : //B-format
+             (imm_type == IMM_S) ? {{20{inst[INST_LEN-1]}},inst[INST_LEN-1],inst[INST_LEN-2:INST_LEN-7],inst[INST_LEN-21:INST_LEN-24],inst[INST_LEN-25]} : 0;// ? S-format : R-format(即値なし)
 
 endmodule
