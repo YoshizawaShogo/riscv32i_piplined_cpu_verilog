@@ -6,6 +6,7 @@ all: unit-test isa-test benchmark-test my-c-test
 
 SHELL := /bin/bash
 BUILDDIR ?= build
+XLEN := 32
 $(shell mkdir -p ${BUILDDIR})
 
 RISCV_TESTS ?= riscv-tests
