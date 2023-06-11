@@ -1,58 +1,65 @@
 // RV32Iのみ(例外処理もなし)
 
 // alu fn
-`define ALU_X    4'd0
-`define ALU_ADD  4'd1
-`define ALU_SUB  4'd2
-`define ALU_AND  4'd3
-`define ALU_OR   4'd4
-`define ALU_XOR  4'd5
-`define ALU_SLL  4'd6
-`define ALU_SRL  4'd7
-`define ALU_SRA  4'd8
-`define ALU_SLT  4'd9
-`define ALU_SLTU 4'd10
-`define ALU_JALR 4'd11
+`define ALU_FN_LEN 4
+`define ALU_X    `ALU_FN_LEN'd0
+`define ALU_ADD  `ALU_FN_LEN'd1
+`define ALU_SUB  `ALU_FN_LEN'd2
+`define ALU_AND  `ALU_FN_LEN'd3
+`define ALU_OR   `ALU_FN_LEN'd4
+`define ALU_XOR  `ALU_FN_LEN'd5
+`define ALU_SLL  `ALU_FN_LEN'd6
+`define ALU_SRL  `ALU_FN_LEN'd7
+`define ALU_SRA  `ALU_FN_LEN'd8
+`define ALU_SLT  `ALU_FN_LEN'd9
+`define ALU_SLTU `ALU_FN_LEN'd10
+`define ALU_JALR `ALU_FN_LEN'd11
 
 // branch fn
-`define BR_X     3'd0
-`define BR_BEQ   3'd1
-`define BR_BNE   3'd2
-`define BR_BLT   3'd3
-`define BR_BGE   3'd4
-`define BR_BLTU  3'd5
-`define BR_BGEU  3'd6
-`define BR_JAL   3'd7
+`define BR_FN_LEN 3
+`define BR_X     `BR_FN_LEN'd0
+`define BR_BEQ   `BR_FN_LEN'd1
+`define BR_BNE   `BR_FN_LEN'd2
+`define BR_BLT   `BR_FN_LEN'd3
+`define BR_BGE   `BR_FN_LEN'd4
+`define BR_BLTU  `BR_FN_LEN'd5
+`define BR_BGEU  `BR_FN_LEN'd6
+`define BR_JAL   `BR_FN_LEN'd7
 
 // rs1
-`define RS1_X    2'd0
-`define RS1_RS1  2'd1
-`define RS1_PC   2'd2
+`define RS1_LEN 2
+`define RS1_X    `RS1_LEN'd0
+`define RS1_RS1  `RS1_LEN'd1
+`define RS1_PC   `RS1_LEN'd2
 
 // rs2
-`define RS2_X    2'd0
-`define RS2_RS2  2'd1
-`define RS2_IMI  2'd2
+`define RS2_LEN 2
+`define RS2_X    `RS2_LEN'd0
+`define RS2_RS2  `RS2_LEN'd1
+`define RS2_IMI  `RS2_LEN'd2
 
 // mem_fn
-`define MEM_LB   3'd0
-`define MEM_LH   3'd1
-`define MEM_LW   3'd2
-`define MEM_LBU  3'd3
-`define MEM_LHU  3'd4
-`define MEM_SB   3'd5
-`define MEM_SH   3'd6
-`define MEM_SW   3'd7
+`define MEM_FN_LEN 3
+`define MEM_LB   `MEM_FN_LEN'd0
+`define MEM_LH   `MEM_FN_LEN'd1
+`define MEM_LW   `MEM_FN_LEN'd2
+`define MEM_LBU  `MEM_FN_LEN'd3
+`define MEM_LHU  `MEM_FN_LEN'd4
+`define MEM_SB   `MEM_FN_LEN'd5
+`define MEM_SH   `MEM_FN_LEN'd6
+`define MEM_SW   `MEM_FN_LEN'd7
 
 // wb_sel
-`define WB_X      2'd0
-`define WB_ALU    2'd1
-`define WB_MEM    2'd2
-`define WB_PC     2'd3
+`define WB_FN_LEN 2
+`define WB_X      `WB_FN_LEN'd0
+`define WB_ALU    `WB_FN_LEN'd1
+`define WB_MEM    `WB_FN_LEN'd2
+`define WB_PC     `WB_FN_LEN'd3
 
 // ecall
-`define ECALL_N 1'b0
-`define ECALL_Y 1'b1
+`define ECALL_FLAG_LEN 1
+`define ECALL_N `ECALL_FLAG_LEN'b0
+`define ECALL_Y `ECALL_FLAG_LEN'b1
 
 /* 以下命令コード */
 // https://riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf の p.116参照

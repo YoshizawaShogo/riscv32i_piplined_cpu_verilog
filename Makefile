@@ -2,6 +2,7 @@
 default: nothing
 nothing:
 	@echo "Choose any target."
+	@echo "e.g.: unit-test, isa-test, benchmark-test, my-c-test"
 all: unit-test isa-test benchmark-test my-c-test
 
 SHELL := /bin/bash
@@ -112,7 +113,8 @@ update-riscv-tests:
     ./configure --prefix=$$RISCV/target --with-xlen=32 && \
     cd - && \
     $(MAKE) -C riscv-tests/benchmarks > /dev/null && \
-    $(MAKE) -C riscv-tests/isa > /dev/null
+    $(MAKE) -C riscv-tests/isa > /dev/null && \
+    $(MAKE) clean
 
 .PHONY: clean
 clean:
