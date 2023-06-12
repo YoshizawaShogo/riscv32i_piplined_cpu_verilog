@@ -7,7 +7,7 @@ module cpu_tb;
     parameter HALFCYCLE = 0.5; //500ns
     parameter CYCLE = 1;
     parameter DATA_LEN = 32;
-    parameter INST_LEN = 32;
+    parameter INST_LEN = `INST_LEN;
     parameter ADDR_LEN = 5;
     
     reg clk;
