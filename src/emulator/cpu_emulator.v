@@ -46,14 +46,14 @@ module cpu_tb;
         #HALFCYCLE clk = ~clk;
         #HALFCYCLE clk = ~clk;
 
-        $display("pc = %x, inst = %x. alu_out = %d, rf[] = %d",
-                cpu.wb_debug_pc, cpu.wb_debug_inst, cpu.wb_debug_alu_out, cpu.reg_file.reg_file[10]);
+        $display("pc = %x, alu_out = %d, rf[] = %d, DASM(%x)",
+                cpu.wb_debug_pc, cpu.wb_debug_alu_out, cpu.reg_file.reg_file[10], cpu.wb_debug_inst);
         if(cpu.mem_wb_ecall) begin
-            $display("ECALL: %d", cpu.reg_file.reg_file[10]);
+            $display("\t%D #ECALL was called.", cpu.reg_file.reg_file[10]);
             $finish;
         end
-        if (cpu.wb_debug_pc === 32'h0xxxxxxx) begin // xxxxxxxには文字列置換して、終了条件が入る
-            $display("end_flag: rf[10] = %d", cpu.reg_file.reg_file[10]);
+        if (cpu.wb_debug_pc === 32'hfffffffe) begin // xxxxxxxには文字列置換して、終了条件が入る
+            $display("\t%D #Reached the END_ADDRESS", cpu.reg_file.reg_file[10]);
             $finish;
         end
     end
@@ -81,10 +81,14 @@ module MEM (
     output wire [31:0] inst,
     output wire [31:0] read_data
 );
-    // 1byte*16384行=16384byte=16KB
+    string HEX_FILE;
     reg [7:0] mem [0:2**16-1];
     initial begin
-        $readmemh("build/isa_test/rv32ui-p-sw.hex", mem);
+        if (! $value$plusargs("HEX_FILE=%s", HEX_FILE)) begin
+            $display("ERROR: Please input HEX_FILE.");
+            $finish(1);
+        end
+        $readmemh(HEX_FILE, mem);
     end
 
     always @(posedge clk) begin

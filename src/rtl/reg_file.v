@@ -16,7 +16,7 @@ module REG_FILE (
     always @(posedge clk) begin
         if (reset) begin
             reg_file[0] <= 32'b0; //zero ゼロレジスタ
-            // reg_file[1] <= 32'b0; //
+            reg_file[1] <= 32'hfffffffe; // 終了条件も兼ねている
             reg_file[2] <= 32'h8000; //sp スタックポイント //適当
             // reg_file[3] <= 32'b0; //
             // reg_file[4] <= 32'b0; //
