@@ -23,7 +23,7 @@ $(shell grep $1 -e ^module | head -n1 | sed -E "s/^module (\w+).*/\1/g")
 endef
 EMULATOR ?= ${BUILDDIR}/emulator
 # common 依存関係
-.PRECIOUS: %.testbench_log %.testbench_src %.hex %.dump
+.PRECIOUS: %.hex %.dump
 ${EMULATOR}: ${EMULATOR_SRC} ${VSRCS} ${VHSRCS}
 	iverilog -g2012 $^ -I ${VSRCDIR} -s $(call get_topmodule, ${EMULATOR_SRC}) -o $@
 %.log: %.hex %.dump ${EMULATOR}
