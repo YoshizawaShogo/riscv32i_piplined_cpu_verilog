@@ -8,7 +8,6 @@ module CPU #(
     output reg [2:0] ex_mem_mem_fn,
     output reg [DATA_LEN-1:0] ex_mem_alu_out,
     output reg [DATA_LEN-1:0] ex_mem_rs2_data,
-    output wire [3:0] led,
     input wire [INST_LEN-1:0] inst,
     input wire [DATA_LEN-1:0] mem_out
 );
@@ -254,7 +253,6 @@ REG_FILE reg_file (
     .rs1_addr(rs1_addr), // input
     .rs2_addr(rs2_addr), // input
     .rs1_data(rs1_data), // output
-    .reg10(led),
     .rs2_data(rs2_data) // output
 );
 

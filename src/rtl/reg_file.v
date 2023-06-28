@@ -7,8 +7,7 @@ module REG_FILE (
     input wire [31:0] write_value,
 
     input wire [4:0] rs1_addr, rs2_addr,
-    output wire [31:0] rs1_data, rs2_data,
-    output wire [3:0] reg10
+    output wire [31:0] rs1_data, rs2_data
 );
 
     reg [31:0] reg_file [0:31];
@@ -48,13 +47,11 @@ module REG_FILE (
             // reg_file[30] <= 32'b0; //
             // reg_file[31] <= 32'b0; //
         end
-        else if (write_en && write_addr != 1'b0) begin
+        else if (write_en && write_addr != 0) begin
             reg_file[write_addr] <= write_value;
         end
     end
 
     assign rs1_data = reg_file[rs1_addr];
     assign rs2_data = reg_file[rs2_addr];
-    assign reg10 = reg_file[10];
-
 endmodule
