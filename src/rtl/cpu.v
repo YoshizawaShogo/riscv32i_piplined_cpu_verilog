@@ -66,7 +66,7 @@ reg [ADDR_LEN-1:0] ex_mem_rd_addr;
 reg [DATA_LEN-1:0] mem_wb_pc;
 reg [INST_LEN-1:0] mem_wb_inst;
 reg mem_wb_ecall;
-assign local_clk = (mem_wb_ecall != 1) ? clk : 1;
+assign local_clk = !mem_wb_ecall & clk;
 
 reg [DATA_LEN-1:0] mem_wb_rs2_data;
 reg [DATA_LEN-1:0] mem_wb_alu_out;
@@ -95,90 +95,98 @@ wire stall_flag_at_if;
 assign stall_flag_at_if = (id_ex_br == `BR_X) && (br == `BR_X)  ? 0 : 1;
 
 always @(posedge local_clk) begin
-
-    // IF_ID
-    if (stall_flag_at_if && !stall_flag_at_id) begin
-        if_id_inst <= 0;
-    end else if (stall_flag_at_id) begin
-        if_id_pc <= if_id_pc;
-        if_id_inst <= if_id_inst;
-    end else begin
-        if_id_pc <= pc;
-        if_id_inst <= inst;
+    if (reset) begin
+        id_ex_ecall <= 0;
+        mem_wb_ecall <= 0;
+        ex_mem_ecall <= 0;
+        wb_debug_ecall <= 0;
     end
+    else begin
+        // IF_ID
+        if (stall_flag_at_if && !stall_flag_at_id) begin
+            if_id_inst <= 0;
+        end else if (stall_flag_at_id) begin
+            if_id_pc <= if_id_pc;
+            if_id_inst <= if_id_inst;
+        end else begin
+            if_id_pc <= pc;
+            if_id_inst <= inst;
+        end
 
-    // ID_EX
-    if (stall_flag_at_id) begin
-        id_ex_br <= `BR_X;
-        id_ex_mem_fn <= `MEM_LB;
-        id_ex_wb_sel <= `WB_X;
-    end else begin
-        id_ex_pc <= if_id_pc;
-        id_ex_inst <= if_id_inst;
-        id_ex_rs1 <= rs1;
-        // フォワーディング
-        if(rs1_addr == 0) id_ex_rs1_data <= 0;
-        else if(id_ex_rd_addr == rs1_addr && id_ex_wb_sel == `WB_PC) id_ex_rs1_data <= id_ex_pc + 4;
-        else if(id_ex_rd_addr == rs1_addr && id_ex_wb_sel == `WB_ALU) id_ex_rs1_data <= alu_out;
-        else if(ex_mem_rd_addr == rs1_addr && ex_mem_wb_sel == `WB_PC) id_ex_rs1_data <= ex_mem_pc + 4;
-        else if(ex_mem_rd_addr == rs1_addr && ex_mem_wb_sel == `WB_ALU) id_ex_rs1_data <= ex_mem_alu_out;
-        else if(ex_mem_rd_addr == rs1_addr && ex_mem_wb_sel == `WB_MEM) id_ex_rs1_data <= mem_out;
-        else if(mem_wb_rd_addr == rs1_addr && mem_wb_wb_sel == `WB_PC) id_ex_rs1_data <= mem_wb_pc + 4;
-        else if(mem_wb_rd_addr == rs1_addr && mem_wb_wb_sel == `WB_ALU) id_ex_rs1_data <= mem_wb_alu_out;
-        else if(mem_wb_rd_addr == rs1_addr && mem_wb_wb_sel == `WB_MEM) id_ex_rs1_data <= mem_wb_mem_out;
-        else id_ex_rs1_data <= rs1_data;
+        // ID_EX
+        if (stall_flag_at_id) begin
+            id_ex_br <= `BR_X;
+            id_ex_mem_fn <= `MEM_LB;
+            id_ex_wb_sel <= `WB_X;
+        end else begin
+            id_ex_pc <= if_id_pc;
+            id_ex_inst <= if_id_inst;
+            id_ex_rs1 <= rs1;
+            // フォワーディング
+            if(rs1_addr == 0) id_ex_rs1_data <= 0;
+            else if(id_ex_rd_addr == rs1_addr && id_ex_wb_sel == `WB_PC) id_ex_rs1_data <= id_ex_pc + 4;
+            else if(id_ex_rd_addr == rs1_addr && id_ex_wb_sel == `WB_ALU) id_ex_rs1_data <= alu_out;
+            else if(ex_mem_rd_addr == rs1_addr && ex_mem_wb_sel == `WB_PC) id_ex_rs1_data <= ex_mem_pc + 4;
+            else if(ex_mem_rd_addr == rs1_addr && ex_mem_wb_sel == `WB_ALU) id_ex_rs1_data <= ex_mem_alu_out;
+            else if(ex_mem_rd_addr == rs1_addr && ex_mem_wb_sel == `WB_MEM) id_ex_rs1_data <= mem_out;
+            else if(mem_wb_rd_addr == rs1_addr && mem_wb_wb_sel == `WB_PC) id_ex_rs1_data <= mem_wb_pc + 4;
+            else if(mem_wb_rd_addr == rs1_addr && mem_wb_wb_sel == `WB_ALU) id_ex_rs1_data <= mem_wb_alu_out;
+            else if(mem_wb_rd_addr == rs1_addr && mem_wb_wb_sel == `WB_MEM) id_ex_rs1_data <= mem_wb_mem_out;
+            else id_ex_rs1_data <= rs1_data;
 
-        id_ex_rs2 <= rs2;
-        // フォワーディング
-        if(rs2_addr == 0) id_ex_rs2_data <= 0;
-        else if(id_ex_rd_addr == rs2_addr && id_ex_wb_sel == `WB_PC) id_ex_rs2_data <= id_ex_pc + 4;
-        else if(id_ex_rd_addr == rs2_addr && id_ex_wb_sel == `WB_ALU) id_ex_rs2_data <= alu_out;
-        else if(ex_mem_rd_addr == rs2_addr && ex_mem_wb_sel == `WB_PC) id_ex_rs2_data <= ex_mem_pc + 4;
-        else if(ex_mem_rd_addr == rs2_addr && ex_mem_wb_sel == `WB_ALU) id_ex_rs2_data <= ex_mem_alu_out;
-        else if(ex_mem_rd_addr == rs2_addr && ex_mem_wb_sel == `WB_MEM) id_ex_rs2_data <= mem_out;
-        else if(mem_wb_rd_addr == rs2_addr && mem_wb_wb_sel == `WB_PC) id_ex_rs2_data <= mem_wb_pc + 4;
-        else if(mem_wb_rd_addr == rs2_addr && mem_wb_wb_sel == `WB_ALU) id_ex_rs2_data <= mem_wb_alu_out;
-        else if(mem_wb_rd_addr == rs2_addr && mem_wb_wb_sel == `WB_MEM) id_ex_rs2_data <= mem_wb_mem_out;
-        else id_ex_rs2_data <= rs2_data;
-        id_ex_rd_addr <= rd_addr;
-        id_ex_br <= br;
-        id_ex_ecall <= ecall;
-        id_ex_alu_fn <= alu_fn;
-        id_ex_imm <= imm;
-        id_ex_mem_fn <= mem_fn;
-        id_ex_wb_sel <= wb_sel;
+            id_ex_rs2 <= rs2;
+            // フォワーディング
+            if(rs2_addr == 0) id_ex_rs2_data <= 0;
+            else if(id_ex_rd_addr == rs2_addr && id_ex_wb_sel == `WB_PC) id_ex_rs2_data <= id_ex_pc + 4;
+            else if(id_ex_rd_addr == rs2_addr && id_ex_wb_sel == `WB_ALU) id_ex_rs2_data <= alu_out;
+            else if(ex_mem_rd_addr == rs2_addr && ex_mem_wb_sel == `WB_PC) id_ex_rs2_data <= ex_mem_pc + 4;
+            else if(ex_mem_rd_addr == rs2_addr && ex_mem_wb_sel == `WB_ALU) id_ex_rs2_data <= ex_mem_alu_out;
+            else if(ex_mem_rd_addr == rs2_addr && ex_mem_wb_sel == `WB_MEM) id_ex_rs2_data <= mem_out;
+            else if(mem_wb_rd_addr == rs2_addr && mem_wb_wb_sel == `WB_PC) id_ex_rs2_data <= mem_wb_pc + 4;
+            else if(mem_wb_rd_addr == rs2_addr && mem_wb_wb_sel == `WB_ALU) id_ex_rs2_data <= mem_wb_alu_out;
+            else if(mem_wb_rd_addr == rs2_addr && mem_wb_wb_sel == `WB_MEM) id_ex_rs2_data <= mem_wb_mem_out;
+            else id_ex_rs2_data <= rs2_data;
+            id_ex_rd_addr <= rd_addr;
+            id_ex_br <= br;
+            id_ex_ecall <= ecall;
+            id_ex_alu_fn <= alu_fn;
+            id_ex_imm <= imm;
+            id_ex_mem_fn <= mem_fn;
+            id_ex_wb_sel <= wb_sel;
+        end
+
+        // EX_MEM
+        ex_mem_pc <= id_ex_pc;
+        ex_mem_inst <= id_ex_inst;
+        ex_mem_ecall <= id_ex_ecall;
+        ex_mem_rs2_data <= id_ex_rs2_data;
+        ex_mem_alu_out <= alu_out;
+        ex_mem_mem_fn <= id_ex_mem_fn;
+        ex_mem_wb_sel <= id_ex_wb_sel;
+        ex_mem_rd_addr <= id_ex_rd_addr;
+
+        // MEM_WB
+        mem_wb_pc <= ex_mem_pc;
+        mem_wb_inst <= ex_mem_inst;
+        mem_wb_ecall <= ex_mem_ecall;
+        mem_wb_alu_out <= ex_mem_alu_out;
+        mem_wb_mem_fn <= ex_mem_mem_fn;
+        mem_wb_mem_out <= mem_out;
+        mem_wb_wb_sel <= ex_mem_wb_sel;
+        mem_wb_rd_addr <= ex_mem_rd_addr;
+
+        // WB reg for debug
+        wb_debug_pc <= mem_wb_pc;
+        wb_debug_inst <= mem_wb_inst;
+        wb_debug_ecall <= mem_wb_ecall;
+        wb_debug_rs2_data <= mem_wb_rs2_data;
+        wb_debug_alu_out <= mem_wb_alu_out;
+        wb_debug_mem_fn <= mem_wb_mem_fn;
+        wb_debug_mem_out <= mem_wb_mem_out;
+        wb_debug_wb_sel <= mem_wb_wb_sel;
+        wb_debug_rd_addr <= mem_wb_rd_addr;
+    
     end
-
-    // EX_MEM
-    ex_mem_pc <= id_ex_pc;
-    ex_mem_inst <= id_ex_inst;
-    ex_mem_ecall <= id_ex_ecall;
-    ex_mem_rs2_data <= id_ex_rs2_data;
-    ex_mem_alu_out <= alu_out;
-    ex_mem_mem_fn <= id_ex_mem_fn;
-    ex_mem_wb_sel <= id_ex_wb_sel;
-    ex_mem_rd_addr <= id_ex_rd_addr;
-
-    // MEM_WB
-    mem_wb_pc <= ex_mem_pc;
-    mem_wb_inst <= ex_mem_inst;
-    mem_wb_ecall <= ex_mem_ecall;
-    mem_wb_alu_out <= ex_mem_alu_out;
-    mem_wb_mem_fn <= ex_mem_mem_fn;
-    mem_wb_mem_out <= mem_out;
-    mem_wb_wb_sel <= ex_mem_wb_sel;
-    mem_wb_rd_addr <= ex_mem_rd_addr;
-
-    // WB reg for debug
-    wb_debug_pc <= mem_wb_pc;
-    wb_debug_inst <= mem_wb_inst;
-    wb_debug_ecall <= mem_wb_ecall;
-    wb_debug_rs2_data <= mem_wb_rs2_data;
-    wb_debug_alu_out <= mem_wb_alu_out;
-    wb_debug_mem_fn <= mem_wb_mem_fn;
-    wb_debug_mem_out <= mem_wb_mem_out;
-    wb_debug_wb_sel <= mem_wb_wb_sel;
-    wb_debug_rd_addr <= mem_wb_rd_addr;
     
 end
 
