@@ -1,6 +1,7 @@
 # prerequisite
     riscv32-unknown-elf-gccをインストール
     iverilogをインストール
+    パスを通す
 
 # usage
 
